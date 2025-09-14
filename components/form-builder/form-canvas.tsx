@@ -1,0 +1,200 @@
+"use client"
+
+import { useState, useRef, useEffect } from "react"
+import { Card, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Button } from "@/components/ui/button"
+import type { FormField } from "@/types/form-builder/form-builder"
+import type { FormConfig } from "@/types/form-builder/form-config"
+import { DraggableField } from "./draggable-field"
+import { Edit3, Send } from "lucide-react"
+import { getFormTranslation, isRTL } from "@/utils/form-builder/translations"
+
+interface FormCanvasProps {
+  fields: FormField[]
+  selectedField: FormField | null
+  onSelectField: (field: FormField | null) => void
+  onUpdateField: (fieldId: string, updates: Partial<FormField>) => void
+  onRemoveField: (fieldId: string) => void
+  onMoveField: (dragIndex: number, hoverIndex: number) => void
+  onMoveFieldUp: (index: number) => void
+  onMoveFieldDown: (index: number) => void
+  formTitle: string
+  formDescription: string
+  onTitleChange: (title: string) => void
+  onDescriptionChange: (description: string) => void
+  currentLanguage: string
+  formConfig?: FormConfig
+  scrollPosition?: number
+  onScrollPositionChange?: (position: number) => void
+}
+
+export function FormCanvas({
+  fields,
+  selectedField,
+  onSelectField,
+  onUpdateField,
+  onRemoveField,
+  onMoveField,
+  onMoveFieldUp,
+  onMoveFieldDown,
+  formTitle,
+  formDescription,
+  onTitleChange,
+  onDescriptionChange,
+  currentLanguage,
+  formConfig,
+  scrollPosition = 0,
+  onScrollPositionChange,
+}: FormCanvasProps) {
+  const [isEditingTitle, setIsEditingTitle] = useState(false)
+  const [isEditingDescription, setIsEditingDescription] = useState(false)
+  const isRTLLanguage = isRTL(currentLanguage)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+
+  // Restore scroll position when returning from preview
+  useEffect(() => {
+    if (scrollContainerRef.current && scrollPosition > 0) {
+      scrollContainerRef.current.scrollTop = scrollPosition
+    }
+  }, [scrollPosition])
+
+  // Track scroll position
+  const handleScroll = () => {
+    if (scrollContainerRef.current && onScrollPositionChange) {
+      onScrollPositionChange(scrollContainerRef.current.scrollTop)
+    }
+  }
+
+  return (
+    <div
+      ref={scrollContainerRef}
+      className="flex-1 form-canvas-background overflow-y-auto h-full"
+      onScroll={handleScroll}
+      style={{ maxHeight: "calc(100vh - 128px)" }}
+    >
+      {/* Form Content Container - Only this part is RTL */}
+      <div
+        className={`max-w-2xl pb-32 ${isRTLLanguage ? "text-right" : "text-left"}`}
+        style={{ margin: "20px auto", padding: "20px 20px 62px 20px" }}
+        dir={isRTLLanguage ? "rtl" : "ltr"}
+      >
+        {/* Form Header */}
+        <div className="mb-8">
+          {isEditingTitle ? (
+            <Input
+              value={formTitle}
+              onChange={(e) => onTitleChange(e.target.value)}
+              onBlur={() => setIsEditingTitle(false)}
+              onKeyDown={(e) => e.key === "Enter" && setIsEditingTitle(false)}
+              className="text-2xl font-bold border-none shadow-none px-0 focus-visible:ring-0 form-title-input"
+              autoFocus
+            />
+          ) : (
+            <h1
+              className="text-2xl font-bold text-gray-900 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded"
+              onClick={() => setIsEditingTitle(true)}
+            >
+              {formTitle || getFormTranslation("formElements", "clickToAddTitle", currentLanguage)}
+            </h1>
+          )}
+
+          {isEditingDescription ? (
+            <Textarea
+              value={formDescription}
+              onChange={(e) => onDescriptionChange(e.target.value)}
+              onBlur={() => setIsEditingDescription(false)}
+              className="mt-2 border-none shadow-none px-0 focus-visible:ring-0 resize-none form-description-input"
+              placeholder={getFormTranslation("formElements", "clickToAddDescription", currentLanguage)}
+              autoFocus
+            />
+          ) : (
+            <p
+              className="text-gray-600 mt-2 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded min-h-[24px]"
+              onClick={() => setIsEditingDescription(true)}
+            >
+              {formDescription || getFormTranslation("formElements", "clickToAddDescription", currentLanguage)}
+            </p>
+          )}
+        </div>
+
+        {/* Form Fields */}
+        {fields.length === 0 ? (
+          <Card className="border-2 border-dashed border-gray-300 form-empty-state">
+            <CardContent className="p-12 text-center form-empty-content">
+              <div className="text-gray-400 mb-4">
+                <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Start building your form</h3>
+              <p className="text-gray-500">Drag fields from the left panel to start building your form</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-6">
+            {fields.map((field, index) => (
+              <DraggableField
+                key={field.id}
+                field={field}
+                index={index}
+                totalFields={fields.length}
+                selectedField={selectedField}
+                onSelectField={onSelectField}
+                onUpdateField={onUpdateField}
+                onRemoveField={onRemoveField}
+                onMoveField={onMoveField}
+                onMoveFieldUp={onMoveFieldUp}
+                onMoveFieldDown={onMoveFieldDown}
+                currentLanguage={currentLanguage}
+                formConfig={formConfig}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Form Footer - Always Present Submit Button */}
+        <div className="mt-8 pt-6 border-t border-gray-200">
+          <div
+            className={`group relative ${
+              selectedField?.type === "submit" ? "ring-2 ring-blue-500 ring-opacity-50" : ""
+            }`}
+            onClick={() => {
+              // Create or select submit button field
+              const submitField = fields.find((f) => f.type === "submit") || {
+                id: "submit_button",
+                type: "submit" as const,
+                label: getFormTranslation("fieldTypes", "submitButton", currentLanguage),
+                required: false,
+                showLabel: false,
+                buttonText: getFormTranslation("formElements", "submitForm", currentLanguage),
+                buttonIcon: "send",
+                buttonStyle: "primary" as const,
+              }
+              onSelectField(submitField)
+            }}
+          >
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3">
+              <Send className={`w-4 h-4 ${isRTLLanguage ? "ml-2 mr-0" : "mr-2"}`} />
+              {fields.find((f) => f.type === "submit")?.buttonText ||
+                getFormTranslation("formElements", "submitForm", currentLanguage)}
+            </Button>
+
+            {/* Edit indicator - UI controls stay LTR positioned */}
+            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 w-8 p-0 form-control-button bg-transparent"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Edit3 className="w-3 h-3" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
