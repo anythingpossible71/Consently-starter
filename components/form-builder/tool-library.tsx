@@ -44,7 +44,7 @@ export function ToolLibrary({ onAddField, currentLanguage }: ToolLibraryProps) {
 
   return (
     <div className="w-80 bg-white border-r border-gray-200 overflow-y-auto">
-      <div className="p-4">
+      <div className="p-4 pb-[50px]">
         <h2 className="text-lg font-semibold mb-4">Add Fields</h2>
         
         <div className="space-y-2">

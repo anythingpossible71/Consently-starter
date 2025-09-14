@@ -51,6 +51,13 @@ export interface FormConfig {
   autoSaveInterval: number
   enableAnalytics: boolean
   trackingId: string
+
+  // Submit Button Settings
+  submitButton: {
+    text: string
+    style: "primary" | "secondary" | "success"
+    icon: string
+  }
 }
 
 export const DEFAULT_FORM_CONFIG: FormConfig = {
@@ -81,4 +88,9 @@ export const DEFAULT_FORM_CONFIG: FormConfig = {
   autoSaveInterval: 30,
   enableAnalytics: false,
   trackingId: "",
+  submitButton: {
+    text: "Submit",
+    style: "primary",
+    icon: "send",
+  },
 }

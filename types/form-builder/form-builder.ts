@@ -45,6 +45,11 @@ export interface FormField {
   }
   // Required field error message
   requiredErrorMessage?: string
+  // File upload specific properties
+  acceptedFileTypes?: string
+  maxFileSize?: number
+  maxFiles?: number
+  allowMultipleFiles?: boolean
 }
 
 export interface ValidationError {

@@ -76,6 +76,45 @@ export function FormBuilder({ onNavigateHome }: FormBuilderProps) {
         showLabel: true,
         requiredErrorMessage: "Please fill your message",
       },
+      {
+        id: "field_5",
+        type: "multiple-choice",
+        label: "Choose your preference",
+        placeholder: "Select an option",
+        required: true,
+        showLabel: true,
+        options: ["Option 1", "Option 2", "Option 3"],
+        requiredErrorMessage: "Please select an option",
+      },
+      {
+        id: "field_6",
+        type: "file-upload",
+        label: "Upload Documents",
+        placeholder: "Choose files to upload",
+        required: true,
+        showLabel: true,
+        acceptedFileTypes: ".pdf,.doc,.docx,.jpg,.png",
+        maxFileSize: 10,
+        maxFiles: 3,
+        allowMultipleFiles: true,
+        requiredErrorMessage: "Please upload the required documents",
+      },
+      {
+        id: "field_7",
+        type: "signature",
+        label: "Digital Signature",
+        required: true,
+        showLabel: true,
+        signatureMethods: {
+          draw: true,
+          upload: true,
+        },
+        signatureSettings: {
+          showColorPicker: true,
+          defaultColor: "black",
+        },
+        requiredErrorMessage: "Please provide your signature",
+      },
     ]
     setFields(sampleFields)
   }, [])
