@@ -1,0 +1,6 @@
+[project]
+id = "019947b7-e819-7146-8ef1-6c61ad105556"
+name = "Consently"
+slug = "consently-i7zu"
+
+environment = "dev"
