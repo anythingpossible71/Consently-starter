@@ -6,6 +6,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import { ThemeToggle } from "@/components/theme-toggle";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Shield, ArrowRight, CheckCircle, User } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -168,96 +169,9 @@ export default async function Home({ searchParams }: HomeProps) {
     );
   }
 
-  // User is signed in
+  // User is signed in - redirect to forms page
   if (currentUser) {
-    const isAdmin = currentUser.roles.some((r) => r.role.name === "admin");
-
-    return (
-      <div className="min-h-screen bg-background">
-        <div className="absolute top-4 right-4">
-          <ThemeToggle />
-        </div>
-        <div className="min-h-screen flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl space-y-4">
-            {isAdmin && (
-              <>
-                <Card>
-                  <CardHeader className="text-center">
-                    <div className="flex justify-center mb-4">
-                      <CheckCircle className="h-12 w-12 text-green-600" />
-                    </div>
-                    <CardTitle className="text-2xl">Congratulations!</CardTitle>
-                    <CardDescription className="text-base">
-                      You have completed the first step in getting your application to work
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <Alert className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
-                      <AlertTitle className="text-blue-800 dark:text-blue-200">
-                        Main Application Page
-                      </AlertTitle>
-                      <AlertDescription className="text-blue-700 dark:text-blue-300">
-                        This is the main page of your application when you are logged in as an admin
-                        user. This is also the screen signed in users will see. You can decide if
-                        the main app page requires users to be signed in or not, and if so, how it
-                        will look. You can change it to include any parts you want - dashboards,
-                        navigation, features, or redirect to your admin panel automatically.
-                      </AlertDescription>
-                    </Alert>
-                  </CardContent>
-                </Card>
-              </>
-            )}
-
-            <Card>
-              <CardHeader className="text-center">
-                <div className="flex justify-center mb-4">
-                  <User className="h-12 w-12 text-primary" />
-                </div>
-                <CardTitle className="text-2xl">Welcome Back!</CardTitle>
-                <CardDescription>You&apos;re signed in as {currentUser.email}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {message === "magic_link_success" && (
-                  <Alert className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <AlertTitle className="text-green-800 dark:text-green-200">Success!</AlertTitle>
-                    <AlertDescription className="text-green-700 dark:text-green-300">
-                      You&apos;ve been successfully signed in via magic link.
-                    </AlertDescription>
-                  </Alert>
-                )}
-
-                <div className="space-y-2">
-                  <h3 className="font-semibold">Your Account</h3>
-                  <div className="text-sm text-muted-foreground space-y-1">
-                    <p>Email: {currentUser.email}</p>
-                    <p>Member since: {new Date(currentUser.created_at).toLocaleDateString()}</p>
-                    <p>Roles: {currentUser.roles.map((r) => r.role.name).join(", ") || "user"}</p>
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  <Link href="/profile">
-                    <Button className="w-full" variant="outline">
-                      View Profile
-                    </Button>
-                  </Link>
-                  {isAdmin && (
-                    <Link href="/admin">
-                      <Button className="w-full" variant="default">
-                        Go to Admin Dashboard
-                      </Button>
-                    </Link>
-                  )}
-                  <SignOutButton />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </div>
-    );
+    redirect("/forms");
   }
 
   // No user signed in, but admin exists
