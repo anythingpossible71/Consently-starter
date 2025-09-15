@@ -1,30 +1,117 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
+import { Textarea } from "@/components/ui/textarea"
+import { Switch } from "@/components/ui/switch"
+import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Separator } from "@/components/ui/separator"
-import { X, Plus, Trash2, GripVertical } from "lucide-react"
-import { useDrag, useDrop } from "react-dnd"
-import type { FormField, FieldType } from "@/types/form-builder/form-builder"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import type { FormField } from "@/types/form-builder/form-builder"
 import type { FormConfig } from "@/types/form-builder/form-config"
+import {
+  Settings,
+  Plus,
+  Trash2,
+  X,
+  HelpCircle,
+  Share2,
+  Palette,
+  GripVertical,
+  Mail,
+  Bell,
+  QrCode,
+  Save,
+  Languages,
+  Globe,
+  Maximize2,
+} from "lucide-react"
+import { getUITranslation, getFormTranslation, isRTL, getDefaultPlaceholder } from "@/utils/form-builder/translations"
+import { useState } from "react"
+import { ThemeEditor } from "./theme-editor"
+import { CountrySelector } from "./country-selector"
+import { RichTextEditor, RichTextModal } from "./rich-text-editor"
+import { DndProvider, useDrag, useDrop } from "react-dnd"
+import { HTML5Backend } from "react-dnd-html5-backend"
+
+interface DraggableOptionProps {
+  option: string
+  index: number
+  moveOption: (dragIndex: number, hoverIndex: number) => void
+  updateOption: (index: number, value: string) => void
+  removeOption: (index: number) => void
+  isRTL: boolean
+}
+
+function DraggableOption({ option, index, moveOption, updateOption, removeOption, isRTL }: DraggableOptionProps) {
+  const [{ isDragging }, drag] = useDrag({
+    type: "option",
+    item: { index },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  })
+
+  const [, drop] = useDrop({
+    accept: "option",
+    hover: (item: { index: number }) => {
+      if (item.index !== index) {
+        moveOption(item.index, index)
+        item.index = index
+      }
+    },
+  })
+
+  return (
+    <div
+      ref={(node) => drag(drop(node))}
+      className={`flex items-center gap-2 ${isRTL ? "flex-row-reverse" : ""} ${
+        isDragging ? "opacity-50" : ""
+      } cursor-move`}
+    >
+      <div className="flex-shrink-0">
+        <GripVertical className="w-4 h-4 text-gray-400" />
+      </div>
+      <Input
+        value={option}
+        onChange={(e) => updateOption(index, e.target.value)}
+        className={`flex-1 ${isRTL ? "text-right" : "text-left"}`}
+        dir={isRTL ? "rtl" : "ltr"}
+      />
+      <Button size="sm" variant="outline" onClick={() => removeOption(index)} className="p-2 flex-shrink-0">
+        <Trash2 className="w-3 h-3" />
+      </Button>
+    </div>
+  )
+}
 
 interface PropertiesPanelProps {
   selectedField: FormField | null
   onUpdateField: (fieldId: string, updates: Partial<FormField>) => void
   formConfig: FormConfig
   onFormConfigChange: (updates: Partial<FormConfig>) => void
-  panelMode: "field" | "form"
+  panelMode: "form" | "field"
   onClose: () => void
   fields: FormField[]
-  onThemeApply?: (css: string) => void
+  onThemeApply: (css: string) => void
   onSaveChanges?: () => void
 }
+
+const AVAILABLE_LANGUAGES = [
+  { code: "en", name: "English", flag: "🇺🇸" },
+  { code: "es", name: "Español", flag: "🇪🇸" },
+  { code: "fr", name: "Français", flag: "🇫🇷" },
+  { code: "de", name: "Deutsch", flag: "🇩🇪" },
+  { code: "it", name: "Italiano", flag: "🇮🇹" },
+  { code: "pt", name: "Português", flag: "🇵🇹" },
+  { code: "ru", name: "Русский", flag: "🇷🇺" },
+  { code: "zh", name: "中文", flag: "🇨🇳" },
+  { code: "ja", name: "日本語", flag: "🇯🇵" },
+  { code: "ko", name: "한국어", flag: "🇰🇷" },
+  { code: "ar", name: "العربية", flag: "🇸🇦" },
+  { code: "he", name: "עברית", flag: "🇮🇱" },
+]
 
 export function PropertiesPanel({
   selectedField,
@@ -35,596 +122,1111 @@ export function PropertiesPanel({
   onClose,
   fields,
   onThemeApply,
-  onSaveChanges
+  onSaveChanges,
 }: PropertiesPanelProps) {
-  const [localField, setLocalField] = useState<FormField | null>(null)
+  const [isLanguageSelectOpen, setIsLanguageSelectOpen] = useState(false)
+  const [selectedLanguageTab, setSelectedLanguageTab] = useState(formConfig.language)
+  const [languageToAdd, setLanguageToAdd] = useState("")
+  const [isRichTextModalOpen, setIsRichTextModalOpen] = useState(false)
 
-  // Update local field when selected field changes
-  useEffect(() => {
-    setLocalField(selectedField ? { ...selectedField } : null)
-  }, [selectedField])
-
-  const handleFieldUpdate = (updates: Partial<FormField>) => {
-    if (!localField) return
-    const updatedField = { ...localField, ...updates }
-    setLocalField(updatedField)
-    onUpdateField(localField.id, updates)
-  }
-
-  const handleOptionAdd = () => {
-    if (!localField) return
-    const newOptions = [...(localField.options || []), `Option ${(localField.options?.length || 0) + 1}`]
-    handleFieldUpdate({ options: newOptions })
-  }
-
-  const handleOptionUpdate = (index: number, value: string) => {
-    if (!localField?.options) return
-    const newOptions = [...localField.options]
+  const updateFieldOption = (index: number, value: string) => {
+    if (!selectedField?.options) return
+    const newOptions = [...selectedField.options]
     newOptions[index] = value
-    handleFieldUpdate({ options: newOptions })
+    onUpdateField(selectedField.id, { options: newOptions })
   }
 
-  const handleOptionRemove = (index: number) => {
-    if (!localField?.options) return
-    const newOptions = localField.options.filter((_, i) => i !== index)
-    handleFieldUpdate({ options: newOptions })
-  }
-
-  const handleOptionMove = (dragIndex: number, hoverIndex: number) => {
-    if (!localField?.options) return
-    const newOptions = [...localField.options]
+  const moveFieldOption = (dragIndex: number, hoverIndex: number) => {
+    if (!selectedField?.options) return
+    const newOptions = [...selectedField.options]
     const draggedOption = newOptions[dragIndex]
     newOptions.splice(dragIndex, 1)
     newOptions.splice(hoverIndex, 0, draggedOption)
-    handleFieldUpdate({ options: newOptions })
+    onUpdateField(selectedField.id, { options: newOptions })
   }
 
-  // Draggable Option Component
-  const DraggableOption = ({ option, index }: { option: string; index: number }) => {
-    const [{ isDragging }, drag] = useDrag({
-      type: "option",
-      item: { index },
-      collect: (monitor) => ({
-        isDragging: monitor.isDragging(),
-      }),
-    })
+  const addFieldOption = () => {
+    if (!selectedField) return
+    const newOptions = [
+      ...(selectedField.options || []),
+      `${getFormTranslation("formElements", "option", formConfig.language)} ${(selectedField.options?.length || 0) + 1}`,
+    ]
+    onUpdateField(selectedField.id, { options: newOptions })
+  }
 
-    const [, drop] = useDrop({
-      accept: "option",
-      hover: (item: { index: number }) => {
-        if (item.index !== index) {
-          handleOptionMove(item.index, index)
-          item.index = index
-        }
+  const removeFieldOption = (index: number) => {
+    if (!selectedField?.options) return
+    const newOptions = selectedField.options.filter((_, i) => i !== index)
+    onUpdateField(selectedField.id, { options: newOptions })
+  }
+
+  const isRTLLanguage = isRTL(formConfig.language)
+
+  // Generate form URL based on title or use default
+  const formUrl = `https://forms.app/${(formConfig.title || "untitled-form").toLowerCase().replace(/\s+/g, "-")}`
+
+  // Language management functions
+  const addLanguage = () => {
+    if (!languageToAdd || formConfig.supportedLanguages?.includes(languageToAdd)) return
+
+    const newSupportedLanguages = [...(formConfig.supportedLanguages || [formConfig.language]), languageToAdd]
+    const newLanguageTexts = {
+      ...formConfig.languageTexts,
+      [languageToAdd]: {
+        formTitle: "",
+        formDescription: "",
+        fieldLabels: {},
+        fieldPlaceholders: {},
+        fieldOptions: {},
+        buttonTexts: {},
       },
+    }
+
+    onFormConfigChange({
+      supportedLanguages: newSupportedLanguages,
+      languageTexts: newLanguageTexts,
+    })
+    setLanguageToAdd("")
+  }
+
+  const removeLanguage = (langCode: string) => {
+    if (langCode === formConfig.language) return // Can't remove main language
+
+    const newSupportedLanguages = formConfig.supportedLanguages?.filter((lang) => lang !== langCode) || []
+    const newLanguageTexts = { ...formConfig.languageTexts }
+    delete newLanguageTexts[langCode]
+
+    onFormConfigChange({
+      supportedLanguages: newSupportedLanguages,
+      languageTexts: newLanguageTexts,
     })
 
-    return (
-      <div
-        ref={(node) => drag(drop(node))}
-        className={`flex items-center space-x-2 p-2 rounded border ${
-          isDragging ? "opacity-50 bg-gray-100" : "bg-white"
-        }`}
-      >
-        <div className="cursor-move p-1 hover:bg-gray-100 rounded">
-          <GripVertical className="w-3 h-3 text-gray-400" />
-        </div>
-        <Input
-          value={option}
-          onChange={(e) => handleOptionUpdate(index, e.target.value)}
-          placeholder={`Option ${index + 1}`}
-          className="flex-1"
-        />
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => handleOptionRemove(index)}
-          className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
-        >
-          <Trash2 className="w-3 h-3" />
-        </Button>
-      </div>
-    )
-  }
-
-  const renderFieldProperties = () => {
-    if (!localField) return null
-
-    return (
-      <div className="space-y-6">
-        {/* Basic Properties */}
-        <div className="space-y-4">
-          <h3 className="text-sm font-medium text-gray-900">Basic Properties</h3>
-          
-          {/* Label */}
-          <div className="space-y-2">
-            <Label htmlFor="field-label">Label</Label>
-            <Input
-              id="field-label"
-              value={localField.label}
-              onChange={(e) => handleFieldUpdate({ label: e.target.value })}
-              placeholder="Field label"
-            />
-          </div>
-
-          {/* Placeholder */}
-          {localField.type !== "heading" && localField.type !== "text-block" && localField.type !== "submit" && localField.type !== "signature" && (
-            <div className="space-y-2">
-              <Label htmlFor="field-placeholder">Placeholder</Label>
-              <Input
-                id="field-placeholder"
-                value={localField.placeholder || ""}
-                onChange={(e) => handleFieldUpdate({ placeholder: e.target.value })}
-                placeholder="Placeholder text"
-              />
-            </div>
-          )}
-
-          {/* Help Text */}
-          <div className="space-y-2">
-            <Label htmlFor="field-help">Help Text</Label>
-            <Textarea
-              id="field-help"
-              value={localField.helpText || ""}
-              onChange={(e) => handleFieldUpdate({ helpText: e.target.value })}
-              placeholder="Help text for users"
-              rows={2}
-            />
-          </div>
-
-          {/* Required */}
-          {localField.type !== "heading" && localField.type !== "text-block" && (
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="field-required"
-                checked={localField.required}
-                onCheckedChange={(checked) => handleFieldUpdate({ required: !!checked })}
-              />
-              <Label htmlFor="field-required">Required field</Label>
-            </div>
-          )}
-
-          {/* Show Label */}
-          {localField.type !== "heading" && localField.type !== "text-block" && localField.type !== "submit" && (
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="field-show-label"
-                checked={localField.showLabel !== false}
-                onCheckedChange={(checked) => handleFieldUpdate({ showLabel: !!checked })}
-              />
-              <Label htmlFor="field-show-label">Show label</Label>
-            </div>
-          )}
-
-          {/* Required Error Message */}
-          {localField.required && (
-            <div className="space-y-2">
-              <Label htmlFor="field-error-message">Required Error Message</Label>
-              <Input
-                id="field-error-message"
-                value={localField.requiredErrorMessage || ""}
-                onChange={(e) => handleFieldUpdate({ requiredErrorMessage: e.target.value })}
-                placeholder="Error message when field is required"
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Field-Specific Properties */}
-        {renderFieldSpecificProperties()}
-      </div>
-    )
-  }
-
-  const renderFieldSpecificProperties = () => {
-    if (!localField) return null
-
-    switch (localField.type) {
-      case "multiple-choice":
-      case "checkboxes":
-        return (
-          <div className="space-y-4">
-            <Separator />
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium text-gray-900">Options</h3>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleOptionAdd}
-                  className="h-8"
-                >
-                  <Plus className="w-3 h-3 mr-1" />
-                  Add Option
-                </Button>
-              </div>
-              
-              <div className="space-y-2">
-                {localField.options?.map((option, index) => (
-                  <DraggableOption key={index} option={option} index={index} />
-                )) || []}
-              </div>
-            </div>
-          </div>
-        )
-
-      case "submit":
-        return (
-          <div className="space-y-4">
-            <Separator />
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium text-gray-900">Submit Button Settings</h3>
-              
-              <div className="space-y-2">
-                <Label htmlFor="button-text">Button Text</Label>
-                <Input
-                  id="button-text"
-                  value={formConfig.submitButton.text}
-                  onChange={(e) => onFormConfigChange({ 
-                    submitButton: { ...formConfig.submitButton, text: e.target.value }
-                  })}
-                  placeholder="Submit"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="button-style">Button Style</Label>
-                <Select
-                  value={formConfig.submitButton.style}
-                  onValueChange={(value: "primary" | "secondary" | "success") => 
-                    onFormConfigChange({ 
-                      submitButton: { ...formConfig.submitButton, style: value }
-                    })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="primary">Primary</SelectItem>
-                    <SelectItem value="secondary">Secondary</SelectItem>
-                    <SelectItem value="success">Success</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="button-icon">Button Icon</Label>
-                <Select
-                  value={formConfig.submitButton.icon}
-                  onValueChange={(value) => onFormConfigChange({ 
-                    submitButton: { ...formConfig.submitButton, icon: value }
-                  })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="send">Send</SelectItem>
-                    <SelectItem value="check">Check</SelectItem>
-                    <SelectItem value="arrow">Arrow</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-        )
-
-      case "phone":
-        return (
-          <div className="space-y-4">
-            <Separator />
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium text-gray-900">Phone Settings</h3>
-              
-              <div className="space-y-2">
-                <Label htmlFor="phone-format">Format</Label>
-                <Select
-                  value={localField.phoneSettings?.format || "international"}
-                  onValueChange={(value: "national" | "international") => 
-                    handleFieldUpdate({ 
-                      phoneSettings: { 
-                        ...localField.phoneSettings, 
-                        format: value 
-                      } 
-                    })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="national">National</SelectItem>
-                    <SelectItem value="international">International</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="default-country">Default Country Code</Label>
-                <Input
-                  id="default-country"
-                  value={localField.phoneSettings?.defaultCountryCode || "US"}
-                  onChange={(e) => handleFieldUpdate({ 
-                    phoneSettings: { 
-                      ...localField.phoneSettings, 
-                      defaultCountryCode: e.target.value 
-                    } 
-                  })}
-                  placeholder="US"
-                />
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="show-country-selector"
-                  checked={localField.phoneSettings?.showCountrySelector !== false}
-                  onCheckedChange={(checked) => handleFieldUpdate({ 
-                    phoneSettings: { 
-                      ...localField.phoneSettings, 
-                      showCountrySelector: !!checked 
-                    } 
-                  })}
-                />
-                <Label htmlFor="show-country-selector">Show Country Selector</Label>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="enable-validation"
-                  checked={localField.phoneSettings?.enableValidation !== false}
-                  onCheckedChange={(checked) => handleFieldUpdate({ 
-                    phoneSettings: { 
-                      ...localField.phoneSettings, 
-                      enableValidation: !!checked 
-                    } 
-                  })}
-                />
-                <Label htmlFor="enable-validation">Enable Validation</Label>
-              </div>
-
-              {localField.phoneSettings?.enableValidation && (
-                <div className="space-y-2">
-                  <Label htmlFor="validation-message">Validation Message</Label>
-                  <Input
-                    id="validation-message"
-                    value={localField.phoneSettings?.validationMessage || ""}
-                    onChange={(e) => handleFieldUpdate({ 
-                      phoneSettings: { 
-                        ...localField.phoneSettings, 
-                        validationMessage: e.target.value 
-                      } 
-                    })}
-                    placeholder="Please enter a valid phone number"
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-        )
-
-      case "file-upload":
-        return (
-          <div className="space-y-4">
-            <Separator />
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium text-gray-900">File Upload Settings</h3>
-              
-              <div className="space-y-2">
-                <Label htmlFor="accepted-file-types">Accepted File Types</Label>
-                <Input
-                  id="accepted-file-types"
-                  value={localField.acceptedFileTypes || ""}
-                  onChange={(e) => handleFieldUpdate({ acceptedFileTypes: e.target.value })}
-                  placeholder=".pdf,.doc,.docx,.jpg,.png"
-                />
-                <p className="text-xs text-gray-500">
-                  Comma-separated file extensions (e.g., .pdf,.doc,.jpg)
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="max-file-size">Max File Size (MB)</Label>
-                <Input
-                  id="max-file-size"
-                  type="number"
-                  value={localField.maxFileSize || ""}
-                  onChange={(e) => handleFieldUpdate({ maxFileSize: parseInt(e.target.value) || undefined })}
-                  placeholder="10"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="max-files">Max Number of Files</Label>
-                <Input
-                  id="max-files"
-                  type="number"
-                  value={localField.maxFiles || ""}
-                  onChange={(e) => handleFieldUpdate({ maxFiles: parseInt(e.target.value) || undefined })}
-                  placeholder="1"
-                />
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="multiple-files"
-                  checked={localField.allowMultipleFiles || false}
-                  onCheckedChange={(checked) => handleFieldUpdate({ allowMultipleFiles: !!checked })}
-                />
-                <Label htmlFor="multiple-files">Allow Multiple Files</Label>
-              </div>
-            </div>
-          </div>
-        )
-
-      case "signature":
-        return (
-          <div className="space-y-4">
-            <Separator />
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium text-gray-900">Signature Settings</h3>
-              
-              <div className="space-y-3">
-                <Label>Signature Methods</Label>
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="signature-draw"
-                      checked={localField.signatureMethods?.draw !== false}
-                      onCheckedChange={(checked) => handleFieldUpdate({ 
-                        signatureMethods: { 
-                          ...localField.signatureMethods, 
-                          draw: !!checked 
-                        } 
-                      })}
-                    />
-                    <Label htmlFor="signature-draw">Allow Drawing</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="signature-upload"
-                      checked={localField.signatureMethods?.upload !== false}
-                      onCheckedChange={(checked) => handleFieldUpdate({ 
-                        signatureMethods: { 
-                          ...localField.signatureMethods, 
-                          upload: !!checked 
-                        } 
-                      })}
-                    />
-                    <Label htmlFor="signature-upload">Allow Upload</Label>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <Label>Signature Options</Label>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="show-color-picker"
-                    checked={localField.signatureSettings?.showColorPicker !== false}
-                    onCheckedChange={(checked) => handleFieldUpdate({ 
-                      signatureSettings: { 
-                        ...localField.signatureSettings, 
-                        showColorPicker: !!checked 
-                      } 
-                    })}
-                  />
-                  <Label htmlFor="show-color-picker">Show Color Picker</Label>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="default-color">Default Color</Label>
-                  <Select
-                    value={localField.signatureSettings?.defaultColor || "black"}
-                    onValueChange={(value: "black" | "blue" | "red") => 
-                      handleFieldUpdate({ 
-                        signatureSettings: { 
-                          ...localField.signatureSettings, 
-                          defaultColor: value 
-                        } 
-                      })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="black">Black</SelectItem>
-                      <SelectItem value="blue">Blue</SelectItem>
-                      <SelectItem value="red">Red</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-          </div>
-        )
-
-      default:
-        return null
+    if (selectedLanguageTab === langCode) {
+      setSelectedLanguageTab(formConfig.language)
     }
   }
 
-  const renderFormSettings = () => {
+  const updateLanguageText = (langCode: string, category: string, key: string, value: string) => {
+    const newLanguageTexts = {
+      ...formConfig.languageTexts,
+      [langCode]: {
+        ...formConfig.languageTexts?.[langCode],
+        [category]: {
+          ...formConfig.languageTexts?.[langCode]?.[category],
+          [key]: value,
+        },
+      },
+    }
+    onFormConfigChange({ languageTexts: newLanguageTexts })
+  }
+
+  const getLanguageText = (langCode: string, category: string, key: string): string => {
+    return formConfig.languageTexts?.[langCode]?.[category]?.[key] || ""
+  }
+
+  const supportedLanguages = formConfig.supportedLanguages || [formConfig.language]
+  const availableToAdd = AVAILABLE_LANGUAGES.filter((lang) => !supportedLanguages.includes(lang.code))
+
+  // Full-screen form settings
+  if (panelMode === "form") {
     return (
-      <div className="space-y-6">
-        <div className="space-y-4">
-          <h3 className="text-sm font-medium text-gray-900">Form Settings</h3>
-          
-          <div className="space-y-2">
-            <Label htmlFor="form-title">Form Title</Label>
-            <Input
-              id="form-title"
-              value={formConfig.title}
-              onChange={(e) => onFormConfigChange({ title: e.target.value })}
-              placeholder="Form title"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="form-description">Form Description</Label>
-            <Textarea
-              id="form-description"
-              value={formConfig.description}
-              onChange={(e) => onFormConfigChange({ description: e.target.value })}
-              placeholder="Form description"
-              rows={3}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="form-language">Language</Label>
-            <Select
-              value={formConfig.language}
-              onValueChange={(value) => onFormConfigChange({ language: value })}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="en">English</SelectItem>
-                <SelectItem value="es">Spanish</SelectItem>
-                <SelectItem value="fr">French</SelectItem>
-                <SelectItem value="de">German</SelectItem>
-                <SelectItem value="ar">Arabic</SelectItem>
-                <SelectItem value="he">Hebrew</SelectItem>
-              </SelectContent>
-            </Select>
+      <div className="fixed inset-0 bg-white z-50 flex flex-col" dir="ltr">
+        {/* Header */}
+        <div className="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Button variant="ghost" size="sm" onClick={onClose} className="p-2">
+                <X className="w-5 h-5" />
+              </Button>
+              <div>
+                <h1 className="text-xl font-semibold text-gray-900">
+                  {getUITranslation("formSettings", formConfig.language)}
+                </h1>
+                <p className="text-sm text-gray-500">Configure your form settings and sharing options</p>
+              </div>
+            </div>
+            <Button onClick={onSaveChanges} className="bg-blue-600 hover:bg-blue-700">
+              <Save className="w-4 h-4 mr-2" />
+              Save Changes
+            </Button>
           </div>
         </div>
 
-        {onSaveChanges && (
-          <Button 
-            className="w-full" 
-            onClick={onSaveChanges}
-          >
-            Save Changes
-          </Button>
-        )}
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto bg-gray-50">
+          <div className="max-w-4xl mx-auto p-6">
+            <Tabs defaultValue="general" className="w-full">
+              <TabsList className="grid w-full grid-cols-4 mb-8 max-w-lg">
+                <TabsTrigger value="general" className="text-sm">
+                  <Settings className="w-4 h-4 mr-2" />
+                  General
+                </TabsTrigger>
+                <TabsTrigger value="languages" className="text-sm">
+                  <Languages className="w-4 h-4 mr-2" />
+                  Languages
+                </TabsTrigger>
+                <TabsTrigger value="sharing" className="text-sm">
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Sharing
+                </TabsTrigger>
+                <TabsTrigger value="styling" className="text-sm">
+                  <Palette className="w-4 h-4 mr-2" />
+                  Style
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="general" className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Form Configuration */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg font-medium flex items-center">
+                        <Settings className="w-5 h-5 text-blue-600 mr-3" />
+                        {getUITranslation("formConfiguration", formConfig.language)}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                          {getUITranslation("formTitle", formConfig.language)}
+                        </Label>
+                        <Input
+                          value={formConfig.title}
+                          onChange={(e) => onFormConfigChange({ title: e.target.value })}
+                          placeholder={getFormTranslation("formElements", "enterFormTitle", formConfig.language)}
+                          className="text-left"
+                          dir={isRTLLanguage ? "rtl" : "ltr"}
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                          {getUITranslation("description", formConfig.language)}
+                        </Label>
+                        <Textarea
+                          value={formConfig.description}
+                          onChange={(e) => onFormConfigChange({ description: e.target.value })}
+                          placeholder={getFormTranslation("formElements", "enterFormDescription", formConfig.language)}
+                          className="text-left"
+                          dir={isRTLLanguage ? "rtl" : "ltr"}
+                          rows={4}
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700 mb-2 block">Main Language</Label>
+                        <Select
+                          value={formConfig.language}
+                          onValueChange={(value) => onFormConfigChange({ language: value })}
+                          open={isLanguageSelectOpen}
+                          onOpenChange={setIsLanguageSelectOpen}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="en">🇺🇸 English</SelectItem>
+                            <SelectItem value="es">🇪🇸 Español</SelectItem>
+                            <SelectItem value="fr">🇫🇷 Français</SelectItem>
+                            <SelectItem value="ar">🇸🇦 العربية</SelectItem>
+                            <SelectItem value="he">🇮🇱 עברית</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Notifications */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg font-medium flex items-center">
+                        <Bell className="w-5 h-5 text-green-600 mr-3" />
+                        {getUITranslation("notifications", formConfig.language)}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm font-medium text-gray-700">
+                          {getUITranslation("enableEmailNotifications", formConfig.language)}
+                        </Label>
+                        <Switch
+                          checked={formConfig.enableNotifications}
+                          onCheckedChange={(checked) => onFormConfigChange({ enableNotifications: checked })}
+                        />
+                      </div>
+
+                      {formConfig.enableNotifications && (
+                        <>
+                          <div>
+                            <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                              {getUITranslation("notificationEmail", formConfig.language)}
+                            </Label>
+                            <div className="relative">
+                              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                              <Input
+                                type="email"
+                                value={formConfig.notificationEmail}
+                                onChange={(e) => onFormConfigChange({ notificationEmail: e.target.value })}
+                                placeholder={getUITranslation("notificationEmailPlaceholder", formConfig.language)}
+                                className="pl-10"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <Label className="text-sm font-medium text-gray-700">
+                                {getUITranslation("notificationMessage", formConfig.language)}
+                              </Label>
+                              <div className="group relative">
+                                <HelpCircle className="w-4 h-4 text-gray-400 cursor-help" />
+                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                                  {getUITranslation("notificationMessageHelp", formConfig.language)}
+                                </div>
+                              </div>
+                            </div>
+                            <Textarea
+                              value={formConfig.notificationMessage}
+                              onChange={(e) => onFormConfigChange({ notificationMessage: e.target.value })}
+                              placeholder={getUITranslation("notificationMessagePlaceholder", formConfig.language)}
+                              className="text-left"
+                              rows={4}
+                            />
+                            <p className="text-xs text-gray-500 mt-2">
+                              {getUITranslation("notificationMessageHelp", formConfig.language)}
+                            </p>
+                          </div>
+                        </>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="languages" className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Language Management */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg font-medium flex items-center">
+                        <Globe className="w-5 h-5 text-indigo-600 mr-3" />
+                        Supported Languages
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {/* Current Languages */}
+                      <div className="space-y-2">
+                        {supportedLanguages.map((langCode) => {
+                          const lang = AVAILABLE_LANGUAGES.find((l) => l.code === langCode)
+                          if (!lang) return null
+
+                          return (
+                            <div key={langCode} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                              <div className="flex items-center space-x-3">
+                                <span className="text-lg">{lang.flag}</span>
+                                <div>
+                                  <p className="font-medium text-sm">{lang.name}</p>
+                                  <p className="text-xs text-gray-500">
+                                    {langCode === formConfig.language ? "Main Language" : "Additional"}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => setSelectedLanguageTab(langCode)}
+                                  className="text-xs"
+                                >
+                                  Edit
+                                </Button>
+                                {langCode !== formConfig.language && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => removeLanguage(langCode)}
+                                    className="text-xs text-red-600 hover:text-red-700"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+
+                      {/* Add Language */}
+                      {availableToAdd.length > 0 && (
+                        <div className="pt-4 border-t border-gray-200">
+                          <Label className="text-sm font-medium text-gray-700 mb-2 block">Add Language</Label>
+                          <div className="flex space-x-2">
+                            <Select value={languageToAdd} onValueChange={setLanguageToAdd}>
+                              <SelectTrigger className="flex-1">
+                                <SelectValue placeholder="Select language..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {availableToAdd.map((lang) => (
+                                  <SelectItem key={lang.code} value={lang.code}>
+                                    {lang.flag} {lang.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <Button onClick={addLanguage} disabled={!languageToAdd} size="sm">
+                              <Plus className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Language Content Editor */}
+                  <Card className="lg:col-span-2">
+                    <CardHeader>
+                      <CardTitle className="text-lg font-medium flex items-center">
+                        <Languages className="w-5 h-5 text-purple-600 mr-3" />
+                        Language Content
+                        {selectedLanguageTab && (
+                          <span className="ml-2 text-sm font-normal text-gray-500">
+                            ({AVAILABLE_LANGUAGES.find((l) => l.code === selectedLanguageTab)?.flag}{" "}
+                            {AVAILABLE_LANGUAGES.find((l) => l.code === selectedLanguageTab)?.name})
+                          </span>
+                        )}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      {selectedLanguageTab && (
+                        <>
+                          {/* Form Texts */}
+                          <div className="space-y-4">
+                            <h4 className="font-medium text-gray-900">Form Information</h4>
+                            <div className="grid grid-cols-1 gap-4">
+                              <div>
+                                <Label className="text-sm font-medium text-gray-700 mb-2 block">Form Title</Label>
+                                <Input
+                                  value={
+                                    getLanguageText(selectedLanguageTab, "formTitle", "title") ||
+                                    (selectedLanguageTab === formConfig.language ? formConfig.title : "")
+                                  }
+                                  onChange={(e) =>
+                                    updateLanguageText(selectedLanguageTab, "formTitle", "title", e.target.value)
+                                  }
+                                  placeholder="Enter form title..."
+                                  dir={isRTL(selectedLanguageTab) ? "rtl" : "ltr"}
+                                />
+                              </div>
+                              <div>
+                                <Label className="text-sm font-medium text-gray-700 mb-2 block">Form Description</Label>
+                                <Textarea
+                                  value={
+                                    getLanguageText(selectedLanguageTab, "formDescription", "description") ||
+                                    (selectedLanguageTab === formConfig.language ? formConfig.description : "")
+                                  }
+                                  onChange={(e) =>
+                                    updateLanguageText(
+                                      selectedLanguageTab,
+                                      "formDescription",
+                                      "description",
+                                      e.target.value,
+                                    )
+                                  }
+                                  placeholder="Enter form description..."
+                                  rows={3}
+                                  dir={isRTL(selectedLanguageTab) ? "rtl" : "ltr"}
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Field Labels */}
+                          <div className="space-y-4">
+                            <h4 className="font-medium text-gray-900">Field Labels</h4>
+                            <div className="space-y-3">
+                              {fields.map((field) => (
+                                <div key={field.id} className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <Label className="text-xs text-gray-600">{field.type} - Label</Label>
+                                    <Input
+                                      value={
+                                        getLanguageText(selectedLanguageTab, "fieldLabels", field.id) ||
+                                        (selectedLanguageTab === formConfig.language ? field.label : "")
+                                      }
+                                      onChange={(e) =>
+                                        updateLanguageText(selectedLanguageTab, "fieldLabels", field.id, e.target.value)
+                                      }
+                                      placeholder={field.label}
+                                      className="text-sm"
+                                      dir={isRTL(selectedLanguageTab) ? "rtl" : "ltr"}
+                                    />
+                                  </div>
+                                  {field.placeholder && (
+                                    <div>
+                                      <Label className="text-xs text-gray-600">{field.type} - Placeholder</Label>
+                                      <Input
+                                        value={
+                                          getLanguageText(selectedLanguageTab, "fieldPlaceholders", field.id) ||
+                                          (selectedLanguageTab === formConfig.language ? field.placeholder : "")
+                                        }
+                                        onChange={(e) =>
+                                          updateLanguageText(
+                                            selectedLanguageTab,
+                                            "fieldPlaceholders",
+                                            field.id,
+                                            e.target.value,
+                                          )
+                                        }
+                                        placeholder={field.placeholder}
+                                        className="text-sm"
+                                        dir={isRTL(selectedLanguageTab) ? "rtl" : "ltr"}
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* QR Code for this language */}
+                          <div className="pt-6 border-t border-gray-200">
+                            <h4 className="font-medium text-gray-900 mb-4">QR Code for this Language</h4>
+                            <div className="text-center">
+                              <div className="inline-block p-3 bg-white border-2 border-gray-200 rounded-lg">
+                                <img
+                                  src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(
+                                    `${formUrl}?lang=${selectedLanguageTab}`,
+                                  )}`}
+                                  alt={`Form QR Code - ${AVAILABLE_LANGUAGES.find((l) => l.code === selectedLanguageTab)?.name}`}
+                                  className="w-30 h-30"
+                                />
+                              </div>
+                              <p className="text-xs text-gray-500 mt-2">
+                                QR code for {AVAILABLE_LANGUAGES.find((l) => l.code === selectedLanguageTab)?.name}{" "}
+                                version
+                              </p>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="mt-2 text-xs bg-transparent"
+                                onClick={() => {
+                                  const canvas = document.createElement("canvas")
+                                  const ctx = canvas.getContext("2d")
+                                  const img = new Image()
+                                  img.crossOrigin = "anonymous"
+                                  img.onload = () => {
+                                    canvas.width = img.width
+                                    canvas.height = img.height
+                                    ctx?.drawImage(img, 0, 0)
+                                    const link = document.createElement("a")
+                                    link.download = `${formConfig.title || "form"}-${selectedLanguageTab}-qr-code.png`
+                                    link.href = canvas.toDataURL()
+                                    link.click()
+                                  }
+                                  img.src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(
+                                    `${formUrl}?lang=${selectedLanguageTab}`,
+                                  )}`
+                                }}
+                              >
+                                <QrCode className="w-3 h-3 mr-1" />
+                                Download
+                              </Button>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="sharing" className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Share & Access */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg font-medium flex items-center">
+                        <Share2 className="w-5 h-5 text-purple-600 mr-3" />
+                        Share & Access
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      {/* Form URL Section */}
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700 mb-2 block">Form URL</Label>
+                        <div className="flex">
+                          <Input value={formUrl} readOnly className="bg-gray-50" />
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="ml-2 px-4 bg-transparent"
+                            onClick={() => {
+                              navigator.clipboard.writeText(formUrl)
+                            }}
+                          >
+                            Copy
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Post-Submission Section */}
+                      <div className="pt-4 border-t border-gray-200">
+                        <Label className="text-sm font-medium text-gray-700 mb-2 block">After Submission</Label>
+                        <Input
+                          value={formConfig.redirectUrl}
+                          onChange={(e) => onFormConfigChange({ redirectUrl: e.target.value })}
+                          placeholder="https://example.com/thank-you (optional)"
+                        />
+                        <p className="text-xs text-gray-500 mt-2">Leave empty to show a thank you message instead</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* QR Code */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg font-medium flex items-center">
+                        <QrCode className="w-5 h-5 text-indigo-600 mr-3" />
+                        Main QR Code
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-center space-y-4">
+                        <div className="inline-block p-4 bg-white border-2 border-gray-200 rounded-lg">
+                          <img
+                            src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(
+                              formUrl,
+                            )}`}
+                            alt="Form QR Code"
+                            className="w-38 h-38"
+                          />
+                        </div>
+                        <p className="text-sm text-gray-600">Scan to access your form (main language)</p>
+                        <Button
+                          variant="outline"
+                          className="w-full bg-transparent"
+                          onClick={() => {
+                            const canvas = document.createElement("canvas")
+                            const ctx = canvas.getContext("2d")
+                            const img = new Image()
+                            img.crossOrigin = "anonymous"
+                            img.onload = () => {
+                              canvas.width = img.width
+                              canvas.height = img.height
+                              ctx?.drawImage(img, 0, 0)
+                              const link = document.createElement("a")
+                              link.download = `${formConfig.title || "form"}-qr-code.png`
+                              link.href = canvas.toDataURL()
+                              link.click()
+                            }
+                            img.src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(
+                              formUrl,
+                            )}`
+                          }}
+                        >
+                          <QrCode className="w-4 h-4 mr-2" />
+                          Download QR Code
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="styling" className="space-y-6">
+                <ThemeEditor
+                  formConfig={formConfig}
+                  onFormConfigChange={onFormConfigChange}
+                  onThemeApply={onThemeApply}
+                />
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
       </div>
     )
   }
 
+  // Regular field properties panel (right sidebar)
   return (
-    <div className="w-80 bg-white border-l border-gray-200 overflow-y-auto">
-      <div className="p-4 pb-[50px]">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">
-            {panelMode === "field" ? "Field Properties" : "Form Settings"}
+    <div className="w-80 bg-gray-50 flex flex-col h-full border-l border-gray-200" dir="ltr">
+      <div className="p-6 border-b border-gray-200 bg-gray-50 text-left">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-900">
+            {getUITranslation("fieldProperties", formConfig.language)}
           </h2>
-          <Button variant="ghost" size="sm" onClick={onClose}>
+          <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
             <X className="w-4 h-4" />
           </Button>
         </div>
-
-        <Card>
-          <CardContent className="p-4">
-            {panelMode === "field" ? renderFieldProperties() : renderFormSettings()}
-          </CardContent>
-        </Card>
       </div>
+
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-6 pb-20 text-left">
+          {panelMode === "field" && selectedField?.type === "rich-text" ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm font-medium">Rich Text Properties</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label className="text-xs font-medium text-gray-700 mb-2 block">Rich Text Content</Label>
+                  <div className="space-y-2">
+                    <RichTextEditor
+                      content={selectedField.richTextContent || ""}
+                      onChange={(content) => onUpdateField(selectedField.id, { richTextContent: content })}
+                      placeholder="Enter your rich text content..."
+                      className="min-h-[200px]"
+                      isRTL={isRTLLanguage}
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full bg-transparent"
+                      onClick={() => setIsRichTextModalOpen(true)}
+                    >
+                      <Maximize2 className="w-4 h-4 mr-2" />
+                      Edit in Full Screen
+                    </Button>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Label className="text-xs font-medium text-gray-700">
+                      {getUITranslation("helpText", formConfig.language)}
+                    </Label>
+                    <div className="group relative">
+                      <HelpCircle className="w-3 h-3 text-gray-400 cursor-help" />
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                        Help text appears below the field to provide additional guidance
+                      </div>
+                    </div>
+                  </div>
+                  <Textarea
+                    value={selectedField.helpText || ""}
+                    onChange={(e) => onUpdateField(selectedField.id, { helpText: e.target.value })}
+                    placeholder={getUITranslation("helpTextPlaceholder", formConfig.language)}
+                    className="mt-1 text-left"
+                    dir={isRTLLanguage ? "rtl" : "ltr"}
+                    rows={2}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          ) : panelMode === "field" && selectedField?.type === "submit" ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm font-medium">
+                  {getUITranslation("fieldProperties", formConfig.language)}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label className="text-xs font-medium text-gray-700">
+                    {getUITranslation("buttonText", formConfig.language)}
+                  </Label>
+                  <Input
+                    value={selectedField.buttonText || ""}
+                    onChange={(e) => {
+                      const existingSubmit = fields.find((f) => f.type === "submit")
+                      if (existingSubmit) {
+                        onUpdateField(existingSubmit.id, { buttonText: e.target.value })
+                      }
+                    }}
+                    placeholder={getFormTranslation("formElements", "submitForm", formConfig.language)}
+                    className="mt-1 text-left"
+                    dir={isRTLLanguage ? "rtl" : "ltr"}
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-xs font-medium text-gray-700">
+                    {getUITranslation("buttonIcon", formConfig.language)}
+                  </Label>
+                  <Select
+                    value={selectedField.buttonIcon || "send"}
+                    onValueChange={(value) => {
+                      const existingSubmit = fields.find((f) => f.type === "submit")
+                      if (existingSubmit) {
+                        onUpdateField(existingSubmit.id, { buttonIcon: value })
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="send">Send</SelectItem>
+                      <SelectItem value="check">Check</SelectItem>
+                      <SelectItem value="arrow">Arrow</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label className="text-xs font-medium text-gray-700">
+                    {getUITranslation("buttonStyle", formConfig.language)}
+                  </Label>
+                  <Select
+                    value={selectedField.buttonStyle || "primary"}
+                    onValueChange={(value) => {
+                      const existingSubmit = fields.find((f) => f.type === "submit")
+                      if (existingSubmit) {
+                        onUpdateField(existingSubmit.id, { buttonStyle: value as "primary" | "secondary" | "success" })
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="primary">Primary (Blue)</SelectItem>
+                      <SelectItem value="success">Success (Green)</SelectItem>
+                      <SelectItem value="secondary">Secondary (Gray)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+          ) : panelMode === "field" && selectedField ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm font-medium">
+                  {getUITranslation("fieldProperties", formConfig.language)}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {selectedField.type !== "heading" &&
+                  selectedField.type !== "text-block" &&
+                  selectedField.type !== "rich-text" &&
+                  selectedField.type !== "submit" && (
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-medium text-gray-700">
+                        {getUITranslation("showLabel", formConfig.language)}
+                      </Label>
+                      <Switch
+                        checked={selectedField.showLabel !== false}
+                        onCheckedChange={(checked) => onUpdateField(selectedField.id, { showLabel: checked })}
+                      />
+                    </div>
+                  )}
+
+                <div>
+                  <Label className="text-xs font-medium text-gray-700">
+                    {getUITranslation("fieldLabel", formConfig.language)}
+                  </Label>
+                  <Input
+                    value={selectedField.label}
+                    onChange={(e) => onUpdateField(selectedField.id, { label: e.target.value })}
+                    className="mt-1 text-left"
+                    dir={isRTLLanguage ? "rtl" : "ltr"}
+                  />
+                </div>
+
+                {selectedField.type !== "heading" &&
+                  selectedField.type !== "text-block" &&
+                  selectedField.type !== "rich-text" &&
+                  selectedField.type !== "submit" &&
+                  selectedField.type !== "multiple-choice" &&
+                  selectedField.type !== "checkboxes" && (
+                    <div>
+                      <Label className="text-xs font-medium text-gray-700">
+                        {getUITranslation("placeholderText", formConfig.language)}
+                      </Label>
+                      <Input
+                        value={selectedField.placeholder || ""}
+                        onChange={(e) => onUpdateField(selectedField.id, { placeholder: e.target.value })}
+                        placeholder={getDefaultPlaceholder(selectedField.type, formConfig.language)}
+                        className="mt-1 text-left"
+                        dir={isRTLLanguage ? "rtl" : "ltr"}
+                      />
+                    </div>
+                  )}
+
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Label className="text-xs font-medium text-gray-700">
+                      {getUITranslation("helpText", formConfig.language)}
+                    </Label>
+                    <div className="group relative">
+                      <HelpCircle className="w-3 h-3 text-gray-400 cursor-help" />
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                        Help text appears below the field to provide additional guidance
+                      </div>
+                    </div>
+                  </div>
+                  <Textarea
+                    value={selectedField.helpText || ""}
+                    onChange={(e) => onUpdateField(selectedField.id, { helpText: e.target.value })}
+                    placeholder={getUITranslation("helpTextPlaceholder", formConfig.language)}
+                    className="mt-1 text-left"
+                    dir={isRTLLanguage ? "rtl" : "ltr"}
+                    rows={2}
+                  />
+                </div>
+
+                {selectedField.type !== "heading" &&
+                  selectedField.type !== "text-block" &&
+                  selectedField.type !== "rich-text" &&
+                  selectedField.type !== "submit" && (
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-medium text-gray-700">
+                        {getUITranslation("requiredField", formConfig.language)}
+                      </Label>
+                      <Switch
+                        checked={selectedField.required}
+                        onCheckedChange={(checked) => onUpdateField(selectedField.id, { required: checked })}
+                      />
+                    </div>
+                  )}
+
+                {selectedField.type !== "heading" &&
+                  selectedField.type !== "text-block" &&
+                  selectedField.type !== "rich-text" &&
+                  selectedField.type !== "submit" && (
+                    <div>
+                      <Label className="text-xs font-medium text-gray-700">Required Error Message</Label>
+                      <Input
+                        value={selectedField.requiredErrorMessage || ""}
+                        onChange={(e) => onUpdateField(selectedField.id, { requiredErrorMessage: e.target.value })}
+                        placeholder={`Please fill your ${selectedField.label.toLowerCase()}`}
+                        className="mt-1 text-left"
+                        dir={isRTLLanguage ? "rtl" : "ltr"}
+                      />
+                    </div>
+                  )}
+
+                {selectedField.type === "phone" && (
+                  <div className="space-y-4 pt-4 border-t border-gray-200">
+                    <div>
+                      <Label className="text-xs font-medium text-gray-700 mb-2 block">Phone Format</Label>
+                      <Select
+                        value={selectedField.phoneSettings?.format || "international"}
+                        onValueChange={(value) =>
+                          onUpdateField(selectedField.id, {
+                            phoneSettings: {
+                              ...selectedField.phoneSettings,
+                              format: value as "national" | "international",
+                            },
+                          })
+                        }
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="national">National (234 567 8900)</SelectItem>
+                          <SelectItem value="international">International (+1 234 567 8900)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {selectedField.phoneSettings?.format === "international" && (
+                      <>
+                        <div className="flex items-center justify-between">
+                          <Label className="text-xs font-medium text-gray-700">Show Country Selector</Label>
+                          <Switch
+                            checked={selectedField.phoneSettings?.showCountrySelector !== false}
+                            onCheckedChange={(checked) =>
+                              onUpdateField(selectedField.id, {
+                                phoneSettings: {
+                                  ...selectedField.phoneSettings,
+                                  showCountrySelector: checked,
+                                },
+                              })
+                            }
+                          />
+                        </div>
+
+                        {selectedField.phoneSettings?.showCountrySelector !== false && (
+                          <div>
+                            <Label className="text-xs font-medium text-gray-700 mb-2 block">Default Country</Label>
+                            <CountrySelector
+                              selectedCountry={selectedField.phoneSettings?.defaultCountryCode || "US"}
+                              onCountryChange={(country) =>
+                                onUpdateField(selectedField.id, {
+                                  phoneSettings: {
+                                    ...selectedField.phoneSettings,
+                                    defaultCountryCode: country,
+                                  },
+                                })
+                              }
+                              showLabel={false}
+                            />
+                          </div>
+                        )}
+                      </>
+                    )}
+
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-medium text-gray-700">Enable Phone Validation</Label>
+                      <Switch
+                        checked={selectedField.phoneSettings?.enableValidation !== false}
+                        onCheckedChange={(checked) =>
+                          onUpdateField(selectedField.id, {
+                            phoneSettings: {
+                              ...selectedField.phoneSettings,
+                              enableValidation: checked,
+                            },
+                          })
+                        }
+                      />
+                    </div>
+
+                    {selectedField.phoneSettings?.enableValidation !== false && (
+                      <div>
+                        <Label className="text-xs font-medium text-gray-700">Validation Message</Label>
+                        <Input
+                          value={selectedField.phoneSettings?.validationMessage || "Please enter a valid phone number"}
+                          onChange={(e) =>
+                            onUpdateField(selectedField.id, {
+                              phoneSettings: {
+                                ...selectedField.phoneSettings,
+                                validationMessage: e.target.value,
+                              },
+                            })
+                          }
+                          placeholder="Please enter a valid phone number"
+                          className="mt-1"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {(selectedField.type === "multiple-choice" || selectedField.type === "checkboxes") && (
+                  <div>
+                    <Label className="text-xs font-medium text-gray-700 mb-2 block">
+                      {getUITranslation("options", formConfig.language)}
+                    </Label>
+                    <DndProvider backend={HTML5Backend}>
+                      <div className="space-y-2">
+                        {selectedField.options?.map((option, index) => (
+                          <DraggableOption
+                            key={index}
+                            option={option}
+                            index={index}
+                            moveOption={moveFieldOption}
+                            updateOption={updateFieldOption}
+                            removeOption={removeFieldOption}
+                            isRTL={isRTLLanguage}
+                          />
+                        ))}
+                        <Button size="sm" variant="outline" onClick={addFieldOption} className="w-full bg-transparent">
+                          <Plus className="w-3 h-3 mr-1" />
+                          {getUITranslation("addOption", formConfig.language)}
+                        </Button>
+                      </div>
+                    </DndProvider>
+                  </div>
+                )}
+
+                {selectedField.type === "signature" && (
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="text-xs font-medium text-gray-700 mb-2 block">Signature Methods</Label>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs">Allow Drawing</span>
+                          <Switch
+                            checked={selectedField.signatureMethods?.draw !== false}
+                            onCheckedChange={(checked) =>
+                              onUpdateField(selectedField.id, {
+                                signatureMethods: {
+                                  ...selectedField.signatureMethods,
+                                  draw: checked,
+                                },
+                              })
+                            }
+                          />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs">Allow Upload</span>
+                          <Switch
+                            checked={selectedField.signatureMethods?.upload !== false}
+                            onCheckedChange={(checked) =>
+                              onUpdateField(selectedField.id, {
+                                signatureMethods: {
+                                  ...selectedField.signatureMethods,
+                                  upload: checked,
+                                },
+                              })
+                            }
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label className="text-xs font-medium text-gray-700 mb-2 block">Color Settings</Label>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs">Show Color Picker</span>
+                          <Switch
+                            checked={selectedField.signatureSettings?.showColorPicker !== false}
+                            onCheckedChange={(checked) =>
+                              onUpdateField(selectedField.id, {
+                                signatureSettings: {
+                                  ...selectedField.signatureSettings,
+                                  showColorPicker: checked,
+                                },
+                              })
+                            }
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs font-medium text-gray-700">Default Color</Label>
+                          <Select
+                            value={selectedField.signatureSettings?.defaultColor || "black"}
+                            onValueChange={(value) =>
+                              onUpdateField(selectedField.id, {
+                                signatureSettings: {
+                                  ...selectedField.signatureSettings,
+                                  defaultColor: value as "black" | "blue" | "red",
+                                },
+                              })
+                            }
+                          >
+                            <SelectTrigger className="mt-1">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="black">Black</SelectItem>
+                              <SelectItem value="blue">Blue</SelectItem>
+                              <SelectItem value="red">Red</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardContent className="p-6 text-center">
+                <div className="text-gray-400 mb-2">
+                  <Settings className="w-8 h-8 mx-auto" />
+                </div>
+                <p className="text-sm text-gray-600">{getUITranslation("selectFieldToEdit", formConfig.language)}</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+
+      {/* Rich Text Modal */}
+      <RichTextModal
+        isOpen={isRichTextModalOpen}
+        onClose={() => setIsRichTextModalOpen(false)}
+        content={selectedField?.richTextContent || ""}
+        onChange={(content) => {
+          if (selectedField) {
+            onUpdateField(selectedField.id, { richTextContent: content })
+          }
+        }}
+        isRTL={isRTLLanguage}
+      />
     </div>
   )
 }

@@ -109,6 +109,26 @@ export const translations = {
     basicContact: "Basic Contact Form",
     workshopRegistration: "Workshop Registration",
     option: "Option",
+
+    // Homepage
+    myForms: "My Forms",
+    manageYourForms: "Create, edit, and manage your forms",
+    newForm: "New Form",
+    searchForms: "Search forms...",
+    totalForms: "total forms",
+    published: "published",
+    totalResponses: "total responses",
+    edit: "Edit",
+    copyLink: "Copy Link",
+    openForm: "Open Form",
+    viewResponses: "View Responses",
+    delete: "Delete",
+    responses: "Responses",
+    noFormsFound: "No forms found",
+    tryDifferentSearch: "Try a different search term",
+    noForms: "No forms yet",
+    createFirstForm: "Create your first form to get started",
+    createForm: "Create Form",
   },
   he: {
     // Form Builder
@@ -216,6 +236,26 @@ export const translations = {
     serviceAgreement: "הסכם שירות כללי",
     basicContact: "טופס יצירת קשר בסיסי",
     workshopRegistration: "רישום לסדנה",
+
+    // Homepage
+    myForms: "הטפסים שלי",
+    manageYourForms: "צור, ערוך ונהל את הטפסים שלך",
+    newForm: "טופס חדש",
+    searchForms: "חפש טפסים...",
+    totalForms: "טפסים בסך הכל",
+    published: "פורסם",
+    totalResponses: "תגובות בסך הכל",
+    edit: "עריכה",
+    copyLink: "העתק קישור",
+    openForm: "פתח טופס",
+    viewResponses: "צפה בתגובות",
+    delete: "מחק",
+    responses: "תגובות",
+    noFormsFound: "לא נמצאו טפסים",
+    tryDifferentSearch: "נסה מונח חיפוש אחר",
+    noForms: "אין טפסים עדיין",
+    createFirstForm: "צור את הטופס הראשון שלך כדי להתחיל",
+    createForm: "צור טופס",
   },
 }
 
