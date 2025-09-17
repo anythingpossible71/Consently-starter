@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { AppHeader } from "@/components/form-builder/app-header"
 import { SidebarMenu } from "@/components/form-builder/sidebar-menu"
 import { Homepage } from "@/components/form-builder/homepage"
@@ -14,11 +15,16 @@ interface AppContainerProps {
 }
 
 export function AppContainer({ initialForms = [] }: AppContainerProps) {
-  const [currentPage, setCurrentPage] = useState<AppPage>("home")
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const [currentFormId, setCurrentFormId] = useState<string | null>(null)
   const [forms, setForms] = useState<FormData[]>(initialForms)
   const [isLoadingForms, setIsLoadingForms] = useState(false)
+
+  // Get current state from URL
+  const currentPage = (searchParams.get('page') as AppPage) || 'home'
+  const currentFormId = searchParams.get('formId')
+  const isPreview = searchParams.get('preview') === 'true'
 
   // Mock user data - in real app, this would come from authentication
   const [user] = useState<User>({
@@ -31,8 +37,12 @@ export function AppContainer({ initialForms = [] }: AppContainerProps) {
   // Forms are now passed as props from server component
 
   const handleNavigate = (page: AppPage, formId?: string) => {
-    setCurrentPage(page)
-    setCurrentFormId(formId || null)
+    const params = new URLSearchParams()
+    params.set('page', page)
+    if (formId) {
+      params.set('formId', formId)
+    }
+    router.push(`/forms?${params.toString()}`)
     setIsSidebarOpen(false)
   }
 
@@ -42,23 +52,19 @@ export function AppContainer({ initialForms = [] }: AppContainerProps) {
   }
 
   const handleCreateForm = () => {
-    setCurrentFormId(null) // New form
-    setCurrentPage("editor")
+    router.push('/forms?page=editor')
   }
 
   const handleEditForm = (formId: string) => {
-    setCurrentFormId(formId)
-    setCurrentPage("editor")
+    router.push(`/forms?page=editor&formId=${formId}`)
   }
 
   const handleViewResponses = (formId: string) => {
-    setCurrentFormId(formId)
-    setCurrentPage("responses")
+    router.push(`/forms?page=responses&formId=${formId}`)
   }
 
   const handleNavigateHome = () => {
-    setCurrentPage("home")
-    setCurrentFormId(null)
+    router.push('/forms?page=home')
   }
 
   const refreshForms = async () => {
@@ -112,6 +118,16 @@ export function AppContainer({ initialForms = [] }: AppContainerProps) {
                   refreshForms() // Refresh forms when navigating back
                 }} 
                 formId={currentFormId || undefined}
+                isPreview={isPreview}
+                onPreviewToggle={(preview: boolean) => {
+                  const params = new URLSearchParams(searchParams.toString())
+                  if (preview) {
+                    params.set('preview', 'true')
+                  } else {
+                    params.delete('preview')
+                  }
+                  router.push(`/forms?${params.toString()}`)
+                }}
               />
             </div>
           )}

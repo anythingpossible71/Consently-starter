@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import type { FormField } from "@/types/form-builder/form-builder"
 import type { FormConfig } from "@/types/form-builder/form-config"
 import { DraggableField } from "./draggable-field"
-import { Edit3, Send } from "lucide-react"
+import { Edit3, Send, Check, ArrowRight } from "lucide-react"
 import { getFormTranslation, isRTL } from "@/utils/form-builder/translations"
 
 interface FormCanvasProps {
@@ -119,49 +119,52 @@ export function FormCanvas({
           )}
         </div>
 
-        {/* Form Fields */}
-        {fields.length === 0 ? (
-          <Card className="border-2 border-dashed border-gray-300 form-empty-state">
-            <CardContent className="p-12 text-center form-empty-content">
-              <div className="text-gray-400 mb-4">
-                <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Start building your form</h3>
-              <p className="text-gray-500">Drag fields from the left panel to start building your form</p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-6">
-            {fields.map((field, index) => (
-              <DraggableField
-                key={field.id}
-                field={field}
-                index={index}
-                totalFields={fields.length}
-                selectedField={selectedField}
-                onSelectField={onSelectField}
-                onUpdateField={onUpdateField}
-                onRemoveField={onRemoveField}
-                onMoveField={onMoveField}
-                onMoveFieldUp={onMoveFieldUp}
-                onMoveFieldDown={onMoveFieldDown}
-                currentLanguage={currentLanguage}
-                formConfig={formConfig}
-              />
-            ))}
-          </div>
-        )}
+        {/* Form Fields - Filter out submit fields from display */}
+        {(() => {
+          const visibleFields = fields.filter(field => field.type !== 'submit')
+          return visibleFields.length === 0 ? (
+            <Card className="border-2 border-dashed border-gray-300 form-empty-state">
+              <CardContent className="p-12 text-center form-empty-content">
+                <div className="text-gray-400 mb-4">
+                  <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Start building your form</h3>
+                <p className="text-gray-500">Drag fields from the left panel to start building your form</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-6">
+              {visibleFields.map((field, index) => (
+                <DraggableField
+                  key={field.id}
+                  field={field}
+                  index={index}
+                  totalFields={visibleFields.length}
+                  selectedField={selectedField}
+                  onSelectField={onSelectField}
+                  onUpdateField={onUpdateField}
+                  onRemoveField={onRemoveField}
+                  onMoveField={onMoveField}
+                  onMoveFieldUp={onMoveFieldUp}
+                  onMoveFieldDown={onMoveFieldDown}
+                  currentLanguage={currentLanguage}
+                  formConfig={formConfig}
+                />
+              ))}
+            </div>
+          )
+        })()}
 
-        {/* Form Footer - Always Present Submit Button */}
+        {/* Form Footer - Submit Button (Always Present, Not Draggable) */}
         <div className="mt-8 pt-6 border-t border-gray-200">
           <div
             className={`group relative ${
               selectedField?.type === "submit" ? "ring-2 ring-blue-500 ring-opacity-50" : ""
             }`}
             onClick={() => {
-              // Create submit button field from form config
+              // Create submit button field from form config for editing
               const submitField = {
                 id: "submit_button",
                 type: "submit" as const,
@@ -180,7 +183,15 @@ export function FormCanvas({
               formConfig.submitButton.style === "secondary" ? "bg-gray-600 hover:bg-gray-700 text-white" :
               "bg-green-600 hover:bg-green-700 text-white"
             }`}>
-              <Send className={`w-4 h-4 ${isRTLLanguage ? "ml-2 mr-0" : "mr-2"}`} />
+              {(() => {
+                const iconMap = {
+                  send: Send,
+                  check: Check,
+                  arrow: ArrowRight,
+                }
+                const IconComponent = iconMap[formConfig.submitButton.icon as keyof typeof iconMap] || Send
+                return <IconComponent className={`w-4 h-4 ${isRTLLanguage ? "ml-2 mr-0" : "mr-2"}`} />
+              })()}
               {formConfig.submitButton.text}
             </Button>
 
@@ -197,6 +208,7 @@ export function FormCanvas({
             </div>
           </div>
         </div>
+
       </div>
     </div>
   )

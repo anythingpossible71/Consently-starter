@@ -229,6 +229,28 @@ export async function saveForm(formData: {
             }
           }
         }
+
+        // Always add submit field as the last element
+        const submitFieldConfig = {
+          id: `submit_${generateId()}`,
+          type: 'submit',
+          label: 'Submit',
+          buttonText: config.submitButton?.text || 'Submit Form',
+          buttonStyle: config.submitButton?.style || 'primary',
+          buttonIcon: config.submitButton?.icon || 'send',
+          required: false,
+          showLabel: false
+        }
+
+        await tx.formField.create({
+          data: {
+            id: generateId(),
+            form_id: id,
+            index: fields.length, // Always last
+            type: 'submit',
+            config: JSON.stringify(submitFieldConfig)
+          }
+        })
       })
 
       revalidatePath('/forms')
@@ -281,6 +303,28 @@ export async function saveForm(formData: {
             }
           }
         }
+
+        // Always add submit field as the last element
+        const submitFieldConfig = {
+          id: `submit_${generateId()}`,
+          type: 'submit',
+          label: 'Submit',
+          buttonText: config.submitButton?.text || 'Submit Form',
+          buttonStyle: config.submitButton?.style || 'primary',
+          buttonIcon: config.submitButton?.icon || 'send',
+          required: false,
+          showLabel: false
+        }
+
+        await tx.formField.create({
+          data: {
+            id: generateId(),
+            form_id: newForm.id,
+            index: fields.length, // Always last
+            type: 'submit',
+            config: JSON.stringify(submitFieldConfig)
+          }
+        })
 
         return newForm
       })

@@ -22,7 +22,7 @@ export function FormPreview({
   onExitPreview
 }: FormPreviewProps) {
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="h-full bg-gray-50 p-4 overflow-y-auto">
       <div className="max-w-2xl mx-auto">
         <div className="bg-white rounded-lg shadow-sm p-8">
           <div className="flex items-center justify-between mb-6">
@@ -37,7 +37,7 @@ export function FormPreview({
             <p className="text-gray-600 mb-6">{formDescription}</p>
           )}
 
-          <div className="space-y-6">
+          <div className="space-y-6 pb-16">
             {fields.map((field, index) => (
               <FieldRenderer
                 key={field.id || index}

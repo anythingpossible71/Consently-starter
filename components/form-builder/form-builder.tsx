@@ -22,19 +22,21 @@ import { toast } from "@/hooks/use-toast"
 interface FormBuilderProps {
   onNavigateHome?: () => void
   formId?: string // Optional form ID for editing existing forms
+  isPreview?: boolean // Preview state from URL
+  onPreviewToggle?: (preview: boolean) => void // Callback to update URL
 }
 
-export function FormBuilder({ onNavigateHome, formId }: FormBuilderProps) {
+export function FormBuilder({ onNavigateHome, formId, isPreview = false, onPreviewToggle }: FormBuilderProps) {
   const [fields, setFields] = useState<FormField[]>([])
   const [selectedField, setSelectedField] = useState<FormField | null>(null)
   const [formConfig, setFormConfig] = useState<FormConfig>(DEFAULT_FORM_CONFIG)
   const [isSettingsActive, setIsSettingsActive] = useState(false)
-  const [isPreviewMode, setIsPreviewMode] = useState(false)
   const [showLanguageDialog, setShowLanguageDialog] = useState(false)
   const [pendingLanguage, setPendingLanguage] = useState("")
   const [appliedCSS, setAppliedCSS] = useState("")
   const [scrollPosition, setScrollPosition] = useState(0)
   const [isPublishing, setIsPublishing] = useState(false)
+  const [allFields, setAllFields] = useState<FormField[]>([]) // All fields including submit
 
   // Load existing form data if formId is provided, otherwise use sample data
   useEffect(() => {
@@ -45,7 +47,11 @@ export function FormBuilder({ onNavigateHome, formId }: FormBuilderProps) {
           const result = await getForm(formId)
           if (result.success && result.form) {
             setFormConfig(result.form.config)
-            setFields(result.form.fields)
+            // Store all fields including submit
+            setAllFields(result.form.fields)
+            // Filter out submit fields when loading for editing (they're handled separately)
+            const editableFields = result.form.fields.filter(field => field.type !== 'submit')
+            setFields(editableFields)
           } else {
             toast({
               title: "Error",
@@ -148,11 +154,25 @@ export function FormBuilder({ onNavigateHome, formId }: FormBuilderProps) {
           },
         ]
         setFields(sampleFields)
+        setAllFields(sampleFields) // For new forms, allFields = fields (no submit field yet)
       }
     }
 
     loadFormData()
   }, [formId])
+
+  // Sync allFields with fields (for preview) - add submit field when needed
+  useEffect(() => {
+    // For existing forms, allFields should include the submit field from database
+    // For new forms, we'll add submit field when saving
+    if (formId && allFields.length > 0) {
+      // Don't modify allFields for existing forms - it already has the submit field
+      return
+    }
+    
+    // For new forms, allFields should match fields (no submit field yet)
+    setAllFields(fields)
+  }, [fields, formId, allFields.length])
 
   // Initialize theme CSS on mount
   useEffect(() => {
@@ -182,7 +202,7 @@ export function FormBuilder({ onNavigateHome, formId }: FormBuilderProps) {
   }
 
   const getDefaultRequiredMessage = (fieldType: FieldType, label: string): string => {
-    const fieldName = label.toLowerCase()
+    const fieldName = (label || "field").toLowerCase()
     return `Please fill your ${fieldName}`
   }
 
@@ -250,6 +270,12 @@ export function FormBuilder({ onNavigateHome, formId }: FormBuilderProps) {
   }
 
   const removeField = (fieldId: string) => {
+    // Prevent deletion of submit fields
+    const fieldToRemove = fields.find(field => field.id === fieldId)
+    if (fieldToRemove?.type === 'submit') {
+      return // Don't allow deletion of submit fields
+    }
+    
     setFields(fields.filter((field) => field.id !== fieldId))
     if (selectedField?.id === fieldId) {
       setSelectedField(null)
@@ -259,6 +285,18 @@ export function FormBuilder({ onNavigateHome, formId }: FormBuilderProps) {
   const moveField = (dragIndex: number, hoverIndex: number) => {
     const newFields = [...fields]
     const draggedField = newFields[dragIndex]
+    
+    // Prevent moving submit fields
+    if (draggedField?.type === 'submit') {
+      return
+    }
+    
+    // Prevent moving fields to the last position if it's occupied by a submit field
+    const lastField = newFields[newFields.length - 1]
+    if (lastField?.type === 'submit' && hoverIndex >= newFields.length - 1) {
+      return
+    }
+    
     newFields.splice(dragIndex, 1)
     newFields.splice(hoverIndex, 0, draggedField)
     setFields(newFields)
@@ -268,6 +306,12 @@ export function FormBuilder({ onNavigateHome, formId }: FormBuilderProps) {
     if (index > 0) {
       const newFields = [...fields]
       const field = newFields[index]
+      
+      // Prevent moving submit fields
+      if (field?.type === 'submit') {
+        return
+      }
+      
       newFields.splice(index, 1)
       newFields.splice(index - 1, 0, field)
       setFields(newFields)
@@ -278,6 +322,18 @@ export function FormBuilder({ onNavigateHome, formId }: FormBuilderProps) {
     if (index < fields.length - 1) {
       const newFields = [...fields]
       const field = newFields[index]
+      
+      // Prevent moving submit fields
+      if (field?.type === 'submit') {
+        return
+      }
+      
+      // Prevent moving to the last position if it's occupied by a submit field
+      const lastField = newFields[newFields.length - 1]
+      if (lastField?.type === 'submit' && index + 1 >= newFields.length - 1) {
+        return
+      }
+      
       newFields.splice(index, 1)
       newFields.splice(index + 1, 0, field)
       setFields(newFields)
@@ -306,8 +362,11 @@ export function FormBuilder({ onNavigateHome, formId }: FormBuilderProps) {
   }
 
   const handlePreviewToggle = () => {
-    setIsPreviewMode(!isPreviewMode)
-    if (!isPreviewMode) {
+    const newPreviewState = !isPreview
+    if (onPreviewToggle) {
+      onPreviewToggle(newPreviewState)
+    }
+    if (newPreviewState) {
       // Entering preview mode - close settings panel
       setIsSettingsActive(false)
       // Don't clear selected field - we'll restore it when coming back
@@ -435,16 +494,18 @@ export function FormBuilder({ onNavigateHome, formId }: FormBuilderProps) {
   }
 
   // Preview Mode - Full Screen
-  if (isPreviewMode) {
+  if (isPreview) {
     return (
-      <div className="form-container">
+      <div className="h-screen overflow-hidden">
         <FormPreview
-          fields={fields}
+          fields={allFields}
           formTitle={formConfig.title || getFormTranslation("formElements", "untitledForm", formConfig.language)}
           formDescription={formConfig.description}
           formConfig={formConfig}
           onExitPreview={() => {
-            setIsPreviewMode(false)
+            if (onPreviewToggle) {
+              onPreviewToggle(false)
+            }
             // Restore selected field and settings panel state when returning from preview
             if (selectedField) {
               setIsSettingsActive(true)
@@ -470,6 +531,7 @@ export function FormBuilder({ onNavigateHome, formId }: FormBuilderProps) {
           currentLanguage={formConfig.language}
           onPublish={handlePublish}
           isPublishing={isPublishing}
+          isPreview={isPreview}
         />
 
         <div className="flex flex-1 overflow-hidden h-full">

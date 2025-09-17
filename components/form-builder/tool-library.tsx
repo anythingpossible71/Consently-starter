@@ -14,8 +14,7 @@ import {
   Upload, 
   PenTool, 
   Heading, 
-  AlignLeft, 
-  Send 
+  AlignLeft
 } from "lucide-react"
 import type { FieldType } from "@/types/form-builder/form-builder"
 import { getTranslation } from "@/utils/form-builder/translations"
@@ -39,7 +38,6 @@ export function ToolLibrary({ onAddField, currentLanguage }: ToolLibraryProps) {
     { type: "signature" as FieldType, icon: PenTool, label: "signature", desc: "signatureDesc" },
     { type: "heading" as FieldType, icon: Heading, label: "heading", desc: "headingDesc" },
     { type: "text-block" as FieldType, icon: AlignLeft, label: "textBlock", desc: "textBlockDesc" },
-    { type: "submit" as FieldType, icon: Send, label: "submitButton", desc: "submitButtonDesc" },
   ]
 
   return (

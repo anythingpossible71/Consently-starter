@@ -825,12 +825,16 @@ export function PropertiesPanel({
                     {getUITranslation("buttonText", formConfig.language)}
                   </Label>
                   <Input
-                    value={selectedField.buttonText || ""}
+                    value={formConfig.submitButton.text || ""}
                     onChange={(e) => {
-                      const existingSubmit = fields.find((f) => f.type === "submit")
-                      if (existingSubmit) {
-                        onUpdateField(existingSubmit.id, { buttonText: e.target.value })
-                      }
+                      // Update formConfig.submitButton directly since submit is not in fields array
+                      onFormConfigChange({
+                        ...formConfig,
+                        submitButton: {
+                          ...formConfig.submitButton,
+                          text: e.target.value
+                        }
+                      })
                     }}
                     placeholder={getFormTranslation("formElements", "submitForm", formConfig.language)}
                     className="mt-1 text-left"
@@ -843,12 +847,16 @@ export function PropertiesPanel({
                     {getUITranslation("buttonIcon", formConfig.language)}
                   </Label>
                   <Select
-                    value={selectedField.buttonIcon || "send"}
+                    value={formConfig.submitButton.icon || "send"}
                     onValueChange={(value) => {
-                      const existingSubmit = fields.find((f) => f.type === "submit")
-                      if (existingSubmit) {
-                        onUpdateField(existingSubmit.id, { buttonIcon: value })
-                      }
+                      // Update formConfig.submitButton directly since submit is not in fields array
+                      onFormConfigChange({
+                        ...formConfig,
+                        submitButton: {
+                          ...formConfig.submitButton,
+                          icon: value
+                        }
+                      })
                     }}
                   >
                     <SelectTrigger className="mt-1">
@@ -867,12 +875,16 @@ export function PropertiesPanel({
                     {getUITranslation("buttonStyle", formConfig.language)}
                   </Label>
                   <Select
-                    value={selectedField.buttonStyle || "primary"}
+                    value={formConfig.submitButton.style || "primary"}
                     onValueChange={(value) => {
-                      const existingSubmit = fields.find((f) => f.type === "submit")
-                      if (existingSubmit) {
-                        onUpdateField(existingSubmit.id, { buttonStyle: value as "primary" | "secondary" | "success" })
-                      }
+                      // Update formConfig.submitButton directly since submit is not in fields array
+                      onFormConfigChange({
+                        ...formConfig,
+                        submitButton: {
+                          ...formConfig.submitButton,
+                          style: value as "primary" | "secondary" | "success"
+                        }
+                      })
                     }}
                   >
                     <SelectTrigger className="mt-1">
@@ -988,7 +1000,7 @@ export function PropertiesPanel({
                       <Input
                         value={selectedField.requiredErrorMessage || ""}
                         onChange={(e) => onUpdateField(selectedField.id, { requiredErrorMessage: e.target.value })}
-                        placeholder={`Please fill your ${selectedField.label.toLowerCase()}`}
+                        placeholder={`Please fill your ${(selectedField.label || "field").toLowerCase()}`}
                         className="mt-1 text-left"
                         dir={isRTLLanguage ? "rtl" : "ltr"}
                       />

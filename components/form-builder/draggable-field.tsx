@@ -136,35 +136,39 @@ export function DraggableField({
 
       {/* Field Controls - Always positioned on the right (LTR) */}
       <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-        {/* Up arrow */}
-        <Button
-          size="sm"
-          variant="outline"
-          className="h-8 w-8 p-0 form-control-button bg-transparent"
-          onClick={(e) => {
-            e.stopPropagation()
-            onMoveFieldUp(index)
-          }}
-          disabled={!canMoveUp}
-          title="Move up"
-        >
-          <ChevronUp className="w-3 h-3" />
-        </Button>
+        {/* Up arrow - hidden for submit fields */}
+        {field.type !== 'submit' && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 w-8 p-0 form-control-button bg-transparent"
+            onClick={(e) => {
+              e.stopPropagation()
+              onMoveFieldUp(index)
+            }}
+            disabled={!canMoveUp}
+            title="Move up"
+          >
+            <ChevronUp className="w-3 h-3" />
+          </Button>
+        )}
 
-        {/* Down arrow */}
-        <Button
-          size="sm"
-          variant="outline"
-          className="h-8 w-8 p-0 form-control-button bg-transparent"
-          onClick={(e) => {
-            e.stopPropagation()
-            onMoveFieldDown(index)
-          }}
-          disabled={!canMoveDown}
-          title="Move down"
-        >
-          <ChevronDown className="w-3 h-3" />
-        </Button>
+        {/* Down arrow - hidden for submit fields */}
+        {field.type !== 'submit' && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 w-8 p-0 form-control-button bg-transparent"
+            onClick={(e) => {
+              e.stopPropagation()
+              onMoveFieldDown(index)
+            }}
+            disabled={!canMoveDown}
+            title="Move down"
+          >
+            <ChevronDown className="w-3 h-3" />
+          </Button>
+        )}
 
         {/* Edit button */}
         <Button
@@ -180,27 +184,31 @@ export function DraggableField({
           <Edit3 className="w-3 h-3" />
         </Button>
 
-        {/* Delete button */}
-        <Button
-          size="sm"
-          variant="outline"
-          className="h-8 w-8 p-0 form-control-button hover:bg-red-50 hover:border-red-200 bg-transparent"
-          onClick={(e) => {
-            e.stopPropagation()
-            onRemoveField(field.id)
-          }}
-          title="Delete field"
-        >
-          <Trash2 className="w-3 h-3 text-red-500" />
-        </Button>
+        {/* Delete button - hidden for submit fields */}
+        {field.type !== 'submit' && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 w-8 p-0 form-control-button hover:bg-red-50 hover:border-red-200 bg-transparent"
+            onClick={(e) => {
+              e.stopPropagation()
+              onRemoveField(field.id)
+            }}
+            title="Delete field"
+          >
+            <Trash2 className="w-3 h-3 text-red-500" />
+          </Button>
+        )}
       </div>
 
-      {/* Drag Handle - Always positioned on the left (LTR) */}
-      <div className="absolute top-1/2 left-2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-        <div ref={drag} className="cursor-move p-1 hover:bg-gray-100 rounded" onClick={(e) => e.stopPropagation()}>
-          <GripVertical className="w-4 h-4 text-gray-400" />
+      {/* Drag Handle - Always positioned on the left (LTR) - hidden for submit fields */}
+      {field.type !== 'submit' && (
+        <div className="absolute top-1/2 left-2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div ref={drag} className="cursor-move p-1 hover:bg-gray-100 rounded" onClick={(e) => e.stopPropagation()}>
+            <GripVertical className="w-4 h-4 text-gray-400" />
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

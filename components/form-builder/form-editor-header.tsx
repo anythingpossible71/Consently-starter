@@ -14,6 +14,7 @@ interface FormEditorHeaderProps {
   currentLanguage: string
   onPublish: () => void
   isPublishing: boolean
+  isPreview?: boolean
 }
 
 export function FormEditorHeader({
@@ -25,7 +26,8 @@ export function FormEditorHeader({
   onBackToHome,
   currentLanguage,
   onPublish,
-  isPublishing
+  isPublishing,
+  isPreview = false
 }: FormEditorHeaderProps) {
   return (
     <div className="bg-white border-b border-gray-200 px-6 py-4">
@@ -46,7 +48,7 @@ export function FormEditorHeader({
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={onPreviewToggle}>
             <Eye className="w-4 h-4 mr-2" />
-            Preview
+            {isPreview ? "Exit Preview" : "Preview"}
           </Button>
           <Button 
             variant={isSettingsActive ? "default" : "outline"} 
