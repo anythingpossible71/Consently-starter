@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import type { FormField } from "@/types/form-builder/form-builder"
 import type { FormConfig } from "@/types/form-builder/form-config"
+import { FieldRenderer } from "./field-renderer"
 
 interface FormPreviewProps {
   fields: FormField[]
@@ -36,8 +37,14 @@ export function FormPreview({
             <p className="text-gray-600 mb-6">{formDescription}</p>
           )}
 
-          <div className="space-y-4">
-            <p className="text-gray-500">Form preview will show here with {fields.length} fields</p>
+          <div className="space-y-6">
+            {fields.map((field, index) => (
+              <FieldRenderer
+                key={field.id || index}
+                field={field}
+                formConfig={formConfig}
+              />
+            ))}
           </div>
         </div>
       </div>

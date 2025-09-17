@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -28,6 +28,7 @@ interface HomepageProps {
   onCreateForm: () => void
   onEditForm: (formId: string) => void
   onViewResponses: (formId: string) => void
+  forms: FormData[]
 }
 
 // Available languages with flags
@@ -62,51 +63,12 @@ function QRCodeDisplay({ text, size = 120 }: { text: string; size?: number }) {
   )
 }
 
-export function Homepage({ currentLanguage, onCreateForm, onEditForm, onViewResponses }: HomepageProps) {
+export function Homepage({ currentLanguage, onCreateForm, onEditForm, onViewResponses, forms }: HomepageProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedLanguages, setSelectedLanguages] = useState<Record<string, string>>({})
   const [qrModalOpen, setQrModalOpen] = useState(false)
   const [qrModalData, setQrModalData] = useState<{ url: string; title: string } | null>(null)
   const isRTLLanguage = isRTL(currentLanguage)
-
-  // Mock data - in real app, this would come from your backend
-  const [forms] = useState<FormData[]>([
-    {
-      id: "1",
-      title: "Contact Form",
-      description: "General contact form for website visitors",
-      createdAt: new Date("2024-01-15"),
-      updatedAt: new Date("2024-01-20"),
-      status: "published",
-      responseCount: 45,
-      fields: [],
-      config: { supportedLanguages: ["en", "es", "fr"], mainLanguage: "en" },
-      shareUrl: "https://forms.example.com/contact-form",
-    },
-    {
-      id: "2",
-      title: "Event Registration",
-      description: "Registration form for upcoming conference",
-      createdAt: new Date("2024-01-10"),
-      updatedAt: new Date("2024-01-18"),
-      status: "published",
-      responseCount: 128,
-      fields: [],
-      config: { supportedLanguages: ["en", "de", "it"], mainLanguage: "en" },
-      shareUrl: "https://forms.example.com/event-registration",
-    },
-    {
-      id: "3",
-      title: "Customer Feedback",
-      description: "Collect feedback from customers",
-      createdAt: new Date("2024-01-22"),
-      updatedAt: new Date("2024-01-22"),
-      status: "draft",
-      responseCount: 0,
-      fields: [],
-      config: { supportedLanguages: ["en", "ar", "he"], mainLanguage: "en" },
-    },
-  ])
 
   const filteredForms = forms.filter(
     (form) =>

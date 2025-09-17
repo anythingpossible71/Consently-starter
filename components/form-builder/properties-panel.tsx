@@ -860,7 +860,7 @@ export function PropertiesPanel({
                       <SelectItem value="arrow">Arrow</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
+        </div>
 
                 <div>
                   <Label className="text-xs font-medium text-gray-700">
@@ -888,7 +888,7 @@ export function PropertiesPanel({
               </CardContent>
             </Card>
           ) : panelMode === "field" && selectedField ? (
-            <Card>
+        <Card>
               <CardHeader>
                 <CardTitle className="text-sm font-medium">
                   {getUITranslation("fieldProperties", formConfig.language)}
@@ -1114,7 +1114,7 @@ export function PropertiesPanel({
                         <Button size="sm" variant="outline" onClick={addFieldOption} className="w-full bg-transparent">
                           <Plus className="w-3 h-3 mr-1" />
                           {getUITranslation("addOption", formConfig.language)}
-                        </Button>
+              </Button>
                       </div>
                     </DndProvider>
                   </div>
@@ -1199,9 +1199,9 @@ export function PropertiesPanel({
                       </div>
                     </div>
                   </div>
-                )}
-              </CardContent>
-            </Card>
+            )}
+          </CardContent>
+        </Card>
           ) : (
             <Card>
               <CardContent className="p-6 text-center">

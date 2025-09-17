@@ -14,12 +14,17 @@ import { DndProvider } from "react-dnd"
 import { HTML5Backend } from "react-dnd-html5-backend"
 import { getFormTranslation } from "@/utils/form-builder/translations"
 import { LanguageChangeDialog } from "@/components/form-builder/language-change-dialog"
+import { saveForm, getForm } from "@/app/actions/forms"
+import { Button } from "@/components/ui/button"
+import { Save, Loader2 } from "lucide-react"
+import { toast } from "@/hooks/use-toast"
 
 interface FormBuilderProps {
   onNavigateHome?: () => void
+  formId?: string // Optional form ID for editing existing forms
 }
 
-export function FormBuilder({ onNavigateHome }: FormBuilderProps) {
+export function FormBuilder({ onNavigateHome, formId }: FormBuilderProps) {
   const [fields, setFields] = useState<FormField[]>([])
   const [selectedField, setSelectedField] = useState<FormField | null>(null)
   const [formConfig, setFormConfig] = useState<FormConfig>(DEFAULT_FORM_CONFIG)
@@ -29,95 +34,125 @@ export function FormBuilder({ onNavigateHome }: FormBuilderProps) {
   const [pendingLanguage, setPendingLanguage] = useState("")
   const [appliedCSS, setAppliedCSS] = useState("")
   const [scrollPosition, setScrollPosition] = useState(0)
+  const [isPublishing, setIsPublishing] = useState(false)
 
-  // Initialize with sample data for testing
+  // Load existing form data if formId is provided, otherwise use sample data
   useEffect(() => {
-    const sampleFields: FormField[] = [
-      {
-        id: "field_1",
-        type: "text",
-        label: "First Name",
-        placeholder: "Enter your first name",
-        required: true,
-        showLabel: true,
-        requiredErrorMessage: "Please fill your first name",
-      },
-      {
-        id: "field_2",
-        type: "email",
-        label: "Email Address",
-        placeholder: "Enter your email",
-        required: true,
-        showLabel: true,
-        requiredErrorMessage: "Please fill your email",
-      },
-      {
-        id: "field_3",
-        type: "phone",
-        label: "Phone Number",
-        placeholder: "Enter your phone number",
-        required: false,
-        showLabel: true,
-        phoneSettings: {
-          format: "international",
-          defaultCountryCode: "US",
-          showCountrySelector: true,
-          enableValidation: true,
-          validationMessage: "Please enter a valid phone number",
-        },
-        requiredErrorMessage: "Please fill your phone number",
-      },
-      {
-        id: "field_4",
-        type: "textarea",
-        label: "Message",
-        placeholder: "Enter your message",
-        required: false,
-        showLabel: true,
-        requiredErrorMessage: "Please fill your message",
-      },
-      {
-        id: "field_5",
-        type: "multiple-choice",
-        label: "Choose your preference",
-        placeholder: "Select an option",
-        required: true,
-        showLabel: true,
-        options: ["Option 1", "Option 2", "Option 3"],
-        requiredErrorMessage: "Please select an option",
-      },
-      {
-        id: "field_6",
-        type: "file-upload",
-        label: "Upload Documents",
-        placeholder: "Choose files to upload",
-        required: true,
-        showLabel: true,
-        acceptedFileTypes: ".pdf,.doc,.docx,.jpg,.png",
-        maxFileSize: 10,
-        maxFiles: 3,
-        allowMultipleFiles: true,
-        requiredErrorMessage: "Please upload the required documents",
-      },
-      {
-        id: "field_7",
-        type: "signature",
-        label: "Digital Signature",
-        required: true,
-        showLabel: true,
-        signatureMethods: {
-          draw: true,
-          upload: true,
-        },
-        signatureSettings: {
-          showColorPicker: true,
-          defaultColor: "black",
-        },
-        requiredErrorMessage: "Please provide your signature",
-      },
-    ]
-    setFields(sampleFields)
-  }, [])
+    const loadFormData = async () => {
+      if (formId) {
+        // Load existing form
+        try {
+          const result = await getForm(formId)
+          if (result.success && result.form) {
+            setFormConfig(result.form.config)
+            setFields(result.form.fields)
+          } else {
+            toast({
+              title: "Error",
+              description: result.error || "Failed to load form",
+              variant: "destructive"
+            })
+          }
+        } catch (error) {
+          console.error('Error loading form:', error)
+          toast({
+            title: "Error",
+            description: "Failed to load form data",
+            variant: "destructive"
+          })
+        }
+      } else {
+        // Initialize with sample data for new forms
+        const sampleFields: FormField[] = [
+          {
+            id: "field_1",
+            type: "text",
+            label: "First Name",
+            placeholder: "Enter your first name",
+            required: true,
+            showLabel: true,
+            requiredErrorMessage: "Please fill your first name",
+          },
+          {
+            id: "field_2",
+            type: "email",
+            label: "Email Address",
+            placeholder: "Enter your email",
+            required: true,
+            showLabel: true,
+            requiredErrorMessage: "Please fill your email",
+          },
+          {
+            id: "field_3",
+            type: "phone",
+            label: "Phone Number",
+            placeholder: "Enter your phone number",
+            required: false,
+            showLabel: true,
+            phoneSettings: {
+              format: "international",
+              defaultCountryCode: "US",
+              showCountrySelector: true,
+              enableValidation: true,
+              validationMessage: "Please enter a valid phone number",
+            },
+            requiredErrorMessage: "Please fill your phone number",
+          },
+          {
+            id: "field_4",
+            type: "textarea",
+            label: "Message",
+            placeholder: "Enter your message",
+            required: false,
+            showLabel: true,
+            requiredErrorMessage: "Please fill your message",
+          },
+          {
+            id: "field_5",
+            type: "multiple-choice",
+            label: "Choose your preference",
+            placeholder: "Select an option",
+            required: true,
+            showLabel: true,
+            options: ["Option 1", "Option 2", "Option 3"],
+            requiredErrorMessage: "Please select an option",
+          },
+          {
+            id: "field_6",
+            type: "file-upload",
+            label: "Upload Documents",
+            placeholder: "Choose files to upload",
+            required: true,
+            showLabel: true,
+            acceptedFileTypes: ".pdf,.doc,.docx,.jpg,.png",
+            maxFileSize: 10,
+            maxFiles: 3,
+            allowMultipleFiles: true,
+            requiredErrorMessage: "Please upload the required documents",
+          },
+          {
+            id: "field_7",
+            type: "signature",
+            label: "Digital Signature",
+            required: true,
+            showLabel: true,
+            signatureMethods: {
+              draw: true,
+              upload: true,
+            },
+            signatureSettings: {
+              showColorPicker: true,
+              defaultColor: "black",
+            },
+            requiredErrorMessage: "Please provide your signature",
+          },
+        ]
+        setFields(sampleFields)
+      }
+    }
+
+    loadFormData()
+  }, [formId])
 
   // Initialize theme CSS on mount
   useEffect(() => {
@@ -348,6 +383,57 @@ export function FormBuilder({ onNavigateHome }: FormBuilderProps) {
     alert("Form settings saved successfully!")
   }
 
+  const handlePublish = async () => {
+    if (!formConfig.title.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a form title before publishing",
+        variant: "destructive"
+      })
+      return
+    }
+
+    setIsPublishing(true)
+    try {
+      const result = await saveForm({
+        id: formId,
+        title: formConfig.title,
+        description: formConfig.description,
+        config: formConfig,
+        fields: fields.map(field => ({
+          ...field,
+          // Ensure translations are properly structured
+          translations: field.translations || {}
+        }))
+      })
+
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: result.message
+        })
+        // Navigate back to forms list
+        if (onNavigateHome) {
+          onNavigateHome()
+        }
+      } else {
+        toast({
+          title: "Error",
+          description: result.message,
+          variant: "destructive"
+        })
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to publish form",
+        variant: "destructive"
+      })
+    } finally {
+      setIsPublishing(false)
+    }
+  }
+
   // Preview Mode - Full Screen
   if (isPreviewMode) {
     return (
@@ -382,6 +468,8 @@ export function FormBuilder({ onNavigateHome }: FormBuilderProps) {
           onPreviewToggle={handlePreviewToggle}
           onBackToHome={handleBackToHome}
           currentLanguage={formConfig.language}
+          onPublish={handlePublish}
+          isPublishing={isPublishing}
         />
 
         <div className="flex flex-1 overflow-hidden h-full">

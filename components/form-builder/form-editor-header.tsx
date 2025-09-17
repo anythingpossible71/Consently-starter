@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Settings, Eye, ArrowLeft } from "lucide-react"
+import { Settings, Eye, ArrowLeft, Save, Loader2 } from "lucide-react"
 
 interface FormEditorHeaderProps {
   formTitle: string
@@ -12,6 +12,8 @@ interface FormEditorHeaderProps {
   onPreviewToggle: () => void
   onBackToHome: () => void
   currentLanguage: string
+  onPublish: () => void
+  isPublishing: boolean
 }
 
 export function FormEditorHeader({
@@ -21,7 +23,9 @@ export function FormEditorHeader({
   isSettingsActive,
   onPreviewToggle,
   onBackToHome,
-  currentLanguage
+  currentLanguage,
+  onPublish,
+  isPublishing
 }: FormEditorHeaderProps) {
   return (
     <div className="bg-white border-b border-gray-200 px-6 py-4">
@@ -50,6 +54,18 @@ export function FormEditorHeader({
           >
             <Settings className="w-4 h-4 mr-2" />
             Settings
+          </Button>
+          <Button 
+            onClick={onPublish}
+            disabled={isPublishing}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            {isPublishing ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4 mr-2" />
+            )}
+            {isPublishing ? "Publishing..." : "Publish"}
           </Button>
         </div>
       </div>

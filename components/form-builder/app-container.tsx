@@ -1,17 +1,24 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { AppHeader } from "@/components/form-builder/app-header"
 import { SidebarMenu } from "@/components/form-builder/sidebar-menu"
 import { Homepage } from "@/components/form-builder/homepage"
 import { FormBuilder } from "@/components/form-builder/form-builder"
 import { FormResponses } from "@/components/form-builder/form-responses"
-import type { AppPage, User } from "@/types/form-builder/app-types"
+import type { AppPage, User, FormData } from "@/types/form-builder/app-types"
+import { getForms } from "@/app/actions/forms"
 
-export function AppContainer() {
+interface AppContainerProps {
+  initialForms?: FormData[]
+}
+
+export function AppContainer({ initialForms = [] }: AppContainerProps) {
   const [currentPage, setCurrentPage] = useState<AppPage>("home")
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [currentFormId, setCurrentFormId] = useState<string | null>(null)
+  const [forms, setForms] = useState<FormData[]>(initialForms)
+  const [isLoadingForms, setIsLoadingForms] = useState(false)
 
   // Mock user data - in real app, this would come from authentication
   const [user] = useState<User>({
@@ -20,6 +27,8 @@ export function AppContainer() {
     name: "John Doe",
     avatar: undefined,
   })
+
+  // Forms are now passed as props from server component
 
   const handleNavigate = (page: AppPage, formId?: string) => {
     setCurrentPage(page)
@@ -52,6 +61,17 @@ export function AppContainer() {
     setCurrentFormId(null)
   }
 
+  const refreshForms = async () => {
+    try {
+      const result = await getForms()
+      if (result.success) {
+        setForms(result.forms)
+      }
+    } catch (error) {
+      console.error('Error refreshing forms:', error)
+    }
+  }
+
   return (
     <div className="flex h-screen bg-gray-50">
       <SidebarMenu
@@ -80,12 +100,19 @@ export function AppContainer() {
               onCreateForm={handleCreateForm}
               onEditForm={handleEditForm}
               onViewResponses={handleViewResponses}
+              forms={forms}
             />
           )}
 
           {currentPage === "editor" && (
             <div className="h-full">
-              <FormBuilder onNavigateHome={handleNavigateHome} />
+              <FormBuilder 
+                onNavigateHome={() => {
+                  handleNavigateHome()
+                  refreshForms() // Refresh forms when navigating back
+                }} 
+                formId={currentFormId || undefined}
+              />
             </div>
           )}
 

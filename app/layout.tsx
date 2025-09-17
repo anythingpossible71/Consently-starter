@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SessionProvider } from "@/components/auth/SessionProvider";
 import { DebugBubble } from "@/components/DebugBubble";
+import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 
 // Initialize structured logging for production
@@ -41,6 +42,7 @@ export default function RootLayout({
           >
             {children}
             <DebugBubble />
+            <Toaster />
           </ThemeProvider>
         </SessionProvider>
       </body>
