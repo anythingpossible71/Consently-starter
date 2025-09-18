@@ -10,7 +10,7 @@ import type { FormData } from "@/types/form-builder/app-types"
 interface FormResponse {
   id: string
   createdAt: string
-  data: {
+  data: Record<string, any> | {
     formData: Record<string, any>
     language: string
     submittedAt: string
@@ -29,6 +29,16 @@ export function FormResponses({ form, onClose }: FormResponsesProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedResponse, setSelectedResponse] = useState<FormResponse | null>(null)
+
+  // Helper function to get form data from response
+  const getFormData = (response: FormResponse): Record<string, any> => {
+    // Check if data has formData property (newer structure)
+    if (response.data && typeof response.data === 'object' && 'formData' in response.data) {
+      return response.data.formData || {}
+    }
+    // Otherwise, data is the form data directly (older structure)
+    return response.data || {}
+  }
 
 
   useEffect(() => {
@@ -60,7 +70,8 @@ export function FormResponses({ form, onClose }: FormResponsesProps) {
     // Get all unique field IDs from all responses
     const allFieldIds = new Set<string>()
     responses.forEach(response => {
-      Object.keys(response.data.formData).forEach(fieldId => {
+      const formData = getFormData(response)
+      Object.keys(formData).forEach(fieldId => {
         allFieldIds.add(fieldId)
       })
     })
@@ -70,11 +81,12 @@ export function FormResponses({ form, onClose }: FormResponsesProps) {
     
     // Create CSV rows
     const rows = responses.map(response => {
+      const formData = getFormData(response)
       const row = [
         new Date(response.createdAt).toLocaleString(),
-        response.data.language,
+        response.data.language || 'Unknown',
         response.data.ipAddress || 'Unknown',
-        ...Array.from(allFieldIds).map(fieldId => response.data.formData[fieldId] || '')
+        ...Array.from(allFieldIds).map(fieldId => formData[fieldId] || '')
       ]
       return row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
     })
@@ -197,19 +209,27 @@ export function FormResponses({ form, onClose }: FormResponsesProps) {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {Object.entries(response.data.formData).slice(0, 6).map(([fieldId, value]) => (
-                    <div key={fieldId} className="space-y-1">
-                      <p className="text-sm font-medium text-gray-700">
-                        {getFieldLabel(fieldId)}
-                      </p>
-                      <p className="text-sm text-gray-600 truncate">
-                        {String(value)}
-                      </p>
+                  {(() => {
+                    const formData = getFormData(response)
+                    return Object.entries(formData).slice(0, 6).map(([fieldId, value]) => (
+                      <div key={fieldId} className="space-y-1">
+                        <p className="text-sm font-medium text-gray-700">
+                          {getFieldLabel(fieldId)}
+                        </p>
+                        <p className="text-sm text-gray-600 truncate">
+                          {String(value)}
+                        </p>
+                      </div>
+                    ))
+                  })()}
+                  {Object.keys(getFormData(response)).length === 0 && (
+                    <div className="col-span-full text-center text-gray-500 py-4">
+                      No form data available
                     </div>
-                  ))}
-                  {Object.keys(response.data.formData).length > 6 && (
+                  )}
+                  {Object.keys(getFormData(response)).length > 6 && (
                     <div className="text-sm text-gray-500">
-                      +{Object.keys(response.data.formData).length - 6} more fields
+                      +{Object.keys(getFormData(response)).length - 6} more fields
                     </div>
                   )}
                 </div>
