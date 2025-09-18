@@ -85,7 +85,9 @@ export function Homepage({ currentLanguage, onCreateForm, onEditForm, onViewResp
   }
 
   const getShareUrl = (form: FormData, language: string) => {
-    const baseUrl = form.shareUrl || `https://forms.example.com/${form.title.toLowerCase().replace(/\s+/g, "-")}`
+    const baseUrl = typeof window !== 'undefined' 
+      ? `${window.location.origin}/forms/public/${form.id}`
+      : `http://localhost:3001/forms/public/${form.id}`
     return language !== "en" ? `${baseUrl}?lang=${language}` : baseUrl
   }
 

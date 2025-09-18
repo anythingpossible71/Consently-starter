@@ -6,6 +6,7 @@ import { ToolLibrary } from "@/components/form-builder/tool-library"
 import { FormCanvas } from "@/components/form-builder/form-canvas"
 import { PropertiesPanel } from "@/components/form-builder/properties-panel"
 import { FormPreview } from "@/components/form-builder/form-preview"
+import { FormResponses } from "@/components/form-builder/form-responses"
 import type { FormField, FieldType } from "@/types/form-builder/form-builder"
 import type { FormConfig } from "@/types/form-builder/form-config"
 import { DEFAULT_FORM_CONFIG } from "@/types/form-builder/form-config"
@@ -24,9 +25,11 @@ interface FormBuilderProps {
   formId?: string // Optional form ID for editing existing forms
   isPreview?: boolean // Preview state from URL
   onPreviewToggle?: (preview: boolean) => void // Callback to update URL
+  isResponses?: boolean // Responses view state from URL
+  onResponsesToggle?: (responses: boolean) => void // Callback to update URL
 }
 
-export function FormBuilder({ onNavigateHome, formId, isPreview = false, onPreviewToggle }: FormBuilderProps) {
+export function FormBuilder({ onNavigateHome, formId, isPreview = false, onPreviewToggle, isResponses = false, onResponsesToggle }: FormBuilderProps) {
   const [fields, setFields] = useState<FormField[]>([])
   const [selectedField, setSelectedField] = useState<FormField | null>(null)
   const [formConfig, setFormConfig] = useState<FormConfig>(DEFAULT_FORM_CONFIG)
@@ -516,6 +519,31 @@ export function FormBuilder({ onNavigateHome, formId, isPreview = false, onPrevi
     )
   }
 
+  if (isResponses) {
+    return (
+      <div className="h-screen overflow-hidden">
+        <FormResponses
+          form={{
+            id: formId || '',
+            title: formConfig.title || getFormTranslation("formElements", "untitledForm", formConfig.language),
+            description: formConfig.description || '',
+            status: 'published',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            shareUrl: '',
+            config: formConfig,
+            fields: allFields
+          }}
+          onClose={() => {
+            if (onResponsesToggle) {
+              onResponsesToggle(false)
+            }
+          }}
+        />
+      </div>
+    )
+  }
+
   // Builder Mode - UI always stays LTR, only form content is RTL
   return (
     <DndProvider backend={HTML5Backend}>
@@ -570,6 +598,7 @@ export function FormBuilder({ onNavigateHome, formId, isPreview = false, onPrevi
               fields={fields}
               onThemeApply={handleThemeApply}
               onSaveChanges={handleSaveChanges}
+              formId={formId}
             />
           )}
         </div>

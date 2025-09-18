@@ -16,9 +16,12 @@ interface FieldRendererProps {
   field: FormField
   formConfig?: FormConfig
   currentLanguage?: string // Keep for backward compatibility
+  value?: any
+  onChange?: (value: any) => void
+  error?: string
 }
 
-export function FieldRenderer({ field, formConfig, currentLanguage = "en" }: FieldRendererProps) {
+export function FieldRenderer({ field, formConfig, currentLanguage = "en", value, onChange, error }: FieldRendererProps) {
   // Use formConfig if available, otherwise create a minimal config from currentLanguage
   const config = formConfig || {
     language: currentLanguage,
@@ -34,8 +37,10 @@ export function FieldRenderer({ field, formConfig, currentLanguage = "en" }: Fie
           <Input
             type={field.type === "email" ? "email" : "text"}
             placeholder={field.placeholder || getDefaultPlaceholder(field.type, config.language)}
-            disabled
-            className={`form-input ${isRTLLanguage ? "text-right" : "text-left"}`}
+            value={value || ""}
+            onChange={(e) => onChange?.(e.target.value)}
+            disabled={!onChange}
+            className={`form-input ${isRTLLanguage ? "text-right" : "text-left"} ${error ? "border-red-500" : ""}`}
             dir={isRTLLanguage ? "rtl" : "ltr"}
           />
         )
@@ -43,11 +48,11 @@ export function FieldRenderer({ field, formConfig, currentLanguage = "en" }: Fie
       case "phone":
         return (
           <PhoneInput
-            value=""
-            onChange={() => {}}
+            value={value || ""}
+            onChange={(val) => onChange?.(val)}
             field={field}
             placeholder={field.placeholder || getDefaultPlaceholder("phone", config.language)}
-            disabled={true}
+            disabled={!onChange}
             className="form-input"
           />
         )
@@ -56,16 +61,23 @@ export function FieldRenderer({ field, formConfig, currentLanguage = "en" }: Fie
         return (
           <Textarea
             placeholder={field.placeholder || getDefaultPlaceholder("textarea", config.language)}
-            disabled
+            value={value || ""}
+            onChange={(e) => onChange?.(e.target.value)}
+            disabled={!onChange}
             rows={4}
-            className={`form-input ${isRTLLanguage ? "text-right" : "text-left"}`}
+            className={`form-input ${isRTLLanguage ? "text-right" : "text-left"} ${error ? "border-red-500" : ""}`}
             dir={isRTLLanguage ? "rtl" : "ltr"}
           />
         )
 
       case "multiple-choice":
         return (
-          <RadioGroup disabled className={isRTLLanguage ? "space-y-3" : "space-y-3"}>
+          <RadioGroup 
+            value={value || ""} 
+            onValueChange={(val) => onChange?.(val)}
+            disabled={!onChange}
+            className={isRTLLanguage ? "space-y-3" : "space-y-3"}
+          >
             {field.options?.map((option, index) => (
               <div key={index} className={`flex items-center gap-2 ${isRTLLanguage ? "flex-row-reverse" : "flex-row"}`}>
                 <RadioGroupItem value={option} id={`${field.id}-${index}`} />
@@ -83,24 +95,45 @@ export function FieldRenderer({ field, formConfig, currentLanguage = "en" }: Fie
       case "checkboxes":
         return (
           <div className="space-y-3">
-            {field.options?.map((option, index) => (
-              <div key={index} className={`flex items-center gap-2 ${isRTLLanguage ? "flex-row-reverse" : "flex-row"}`}>
-                <Checkbox id={`${field.id}-${index}`} disabled />
-                <Label
-                  htmlFor={`${field.id}-${index}`}
-                  className={`${isRTLLanguage ? "text-right mr-2" : "text-left ml-2"} flex-1`}
-                >
-                  {option}
-                </Label>
-              </div>
-            ))}
+            {field.options?.map((option, index) => {
+              const checkedValues = value || []
+              const isChecked = checkedValues.includes(option)
+              
+              return (
+                <div key={index} className={`flex items-center gap-2 ${isRTLLanguage ? "flex-row-reverse" : "flex-row"}`}>
+                  <Checkbox 
+                    id={`${field.id}-${index}`} 
+                    checked={isChecked}
+                    onCheckedChange={(checked) => {
+                      if (!onChange) return
+                      const newValues = checked 
+                        ? [...checkedValues, option]
+                        : checkedValues.filter((v: string) => v !== option)
+                      onChange(newValues)
+                    }}
+                    disabled={!onChange}
+                  />
+                  <Label
+                    htmlFor={`${field.id}-${index}`}
+                    className={`${isRTLLanguage ? "text-right mr-2" : "text-left ml-2"} flex-1`}
+                  >
+                    {option}
+                  </Label>
+                </div>
+              )
+            })}
           </div>
         )
 
       case "agreement":
         return (
           <div className={`flex items-center gap-2 ${isRTLLanguage ? "flex-row-reverse" : "flex-row"}`}>
-            <Checkbox id={field.id} disabled />
+            <Checkbox 
+              id={field.id} 
+              checked={value || false}
+              onCheckedChange={(checked) => onChange?.(checked)}
+              disabled={!onChange}
+            />
             <Label htmlFor={field.id} className={`${isRTLLanguage ? "text-right mr-2" : "text-left ml-2"} flex-1`}>
               {field.placeholder || "I agree to the terms and conditions"}
             </Label>
@@ -112,8 +145,10 @@ export function FieldRenderer({ field, formConfig, currentLanguage = "en" }: Fie
           <div className="relative">
             <Input
               type="date"
-              disabled
-              className={`form-input ${isRTLLanguage ? "text-right" : "text-left"}`}
+              value={value || ""}
+              onChange={(e) => onChange?.(e.target.value)}
+              disabled={!onChange}
+              className={`form-input ${isRTLLanguage ? "text-right" : "text-left"} ${error ? "border-red-500" : ""}`}
               dir={isRTLLanguage ? "rtl" : "ltr"}
             />
             <Calendar

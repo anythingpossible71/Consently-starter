@@ -6,7 +6,6 @@ import { AppHeader } from "@/components/form-builder/app-header"
 import { SidebarMenu } from "@/components/form-builder/sidebar-menu"
 import { Homepage } from "@/components/form-builder/homepage"
 import { FormBuilder } from "@/components/form-builder/form-builder"
-import { FormResponses } from "@/components/form-builder/form-responses"
 import type { AppPage, User, FormData } from "@/types/form-builder/app-types"
 import { getForms } from "@/app/actions/forms"
 
@@ -25,6 +24,7 @@ export function AppContainer({ initialForms = [] }: AppContainerProps) {
   const currentPage = (searchParams.get('page') as AppPage) || 'home'
   const currentFormId = searchParams.get('formId')
   const isPreview = searchParams.get('preview') === 'true'
+  const isResponses = searchParams.get('responses') === 'true'
 
   // Mock user data - in real app, this would come from authentication
   const [user] = useState<User>({
@@ -128,13 +128,20 @@ export function AppContainer({ initialForms = [] }: AppContainerProps) {
                   }
                   router.push(`/forms?${params.toString()}`)
                 }}
+                isResponses={isResponses}
+                onResponsesToggle={(responses: boolean) => {
+                  const params = new URLSearchParams(searchParams.toString())
+                  if (responses) {
+                    params.set('responses', 'true')
+                  } else {
+                    params.delete('responses')
+                  }
+                  router.push(`/forms?${params.toString()}`)
+                }}
               />
             </div>
           )}
 
-          {currentPage === "responses" && currentFormId && (
-            <FormResponses formId={currentFormId} currentLanguage="en" onBack={handleNavigateHome} />
-          )}
         </main>
       </div>
     </div>

@@ -96,6 +96,7 @@ interface PropertiesPanelProps {
   fields: FormField[]
   onThemeApply: (css: string) => void
   onSaveChanges?: () => void
+  formId?: string
 }
 
 const AVAILABLE_LANGUAGES = [
@@ -123,6 +124,7 @@ export function PropertiesPanel({
   fields,
   onThemeApply,
   onSaveChanges,
+  formId,
 }: PropertiesPanelProps) {
   const [isLanguageSelectOpen, setIsLanguageSelectOpen] = useState(false)
   const [selectedLanguageTab, setSelectedLanguageTab] = useState(formConfig.language)
@@ -162,8 +164,10 @@ export function PropertiesPanel({
 
   const isRTLLanguage = isRTL(formConfig.language)
 
-  // Generate form URL based on title or use default
-  const formUrl = `https://forms.app/${(formConfig.title || "untitled-form").toLowerCase().replace(/\s+/g, "-")}`
+  // Generate form URL based on formId or use default
+  const formUrl = formId 
+    ? `${window.location.origin}/forms/public/${formId}`
+    : `https://forms.app/${(formConfig.title || "untitled-form").toLowerCase().replace(/\s+/g, "-")}`
 
   // Language management functions
   const addLanguage = () => {
@@ -649,26 +653,8 @@ export function PropertiesPanel({
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                      {/* Form URL Section */}
-                      <div>
-                        <Label className="text-sm font-medium text-gray-700 mb-2 block">Form URL</Label>
-                        <div className="flex">
-                          <Input value={formUrl} readOnly className="bg-gray-50" />
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="ml-2 px-4 bg-transparent"
-                            onClick={() => {
-                              navigator.clipboard.writeText(formUrl)
-                            }}
-                          >
-                            Copy
-                          </Button>
-                        </div>
-                      </div>
-
                       {/* Post-Submission Section */}
-                      <div className="pt-4 border-t border-gray-200">
+                      <div>
                         <Label className="text-sm font-medium text-gray-700 mb-2 block">After Submission</Label>
                         <Input
                           value={formConfig.redirectUrl}
@@ -680,51 +666,61 @@ export function PropertiesPanel({
                     </CardContent>
                   </Card>
 
-                  {/* QR Code */}
+                  {/* Language-Specific Links & QR Codes */}
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-lg font-medium flex items-center">
                         <QrCode className="w-5 h-5 text-indigo-600 mr-3" />
-                        Main QR Code
+                        Language Links & QR Codes
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-center space-y-4">
-                        <div className="inline-block p-4 bg-white border-2 border-gray-200 rounded-lg">
-                          <img
-                            src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(
-                              formUrl,
-                            )}`}
-                            alt="Form QR Code"
-                            className="w-38 h-38"
-                          />
-                        </div>
-                        <p className="text-sm text-gray-600">Scan to access your form (main language)</p>
-                        <Button
-                          variant="outline"
-                          className="w-full bg-transparent"
-                          onClick={() => {
-                            const canvas = document.createElement("canvas")
-                            const ctx = canvas.getContext("2d")
-                            const img = new Image()
-                            img.crossOrigin = "anonymous"
-                            img.onload = () => {
-                              canvas.width = img.width
-                              canvas.height = img.height
-                              ctx?.drawImage(img, 0, 0)
-                              const link = document.createElement("a")
-                              link.download = `${formConfig.title || "form"}-qr-code.png`
-                              link.href = canvas.toDataURL()
-                              link.click()
-                            }
-                            img.src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(
-                              formUrl,
-                            )}`
-                          }}
-                        >
-                          <QrCode className="w-4 h-4 mr-2" />
-                          Download QR Code
-                        </Button>
+                      <div className="space-y-4">
+                        {formConfig.supportedLanguages?.map((language: string) => {
+                          const languageInfo = AVAILABLE_LANGUAGES.find(lang => lang.code === language)
+                          const languageUrl = language === 'en' ? formUrl : `${formUrl}?lang=${language}`
+                          
+                          return (
+                            <div key={language} className="border border-gray-200 rounded-lg p-4">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-2xl">{languageInfo?.flag}</span>
+                                  <span className="font-medium">{languageInfo?.name || language}</span>
+                                  {language === formConfig.language && (
+                                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Main</span>
+                                  )}
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => navigator.clipboard.writeText(languageUrl)}
+                                >
+                                  Copy Link
+                                </Button>
+                              </div>
+                              
+                              <div className="flex items-center gap-4">
+                                <div className="flex-shrink-0">
+                                  <img
+                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(languageUrl)}`}
+                                    alt={`QR Code for ${languageInfo?.name}`}
+                                    className="w-20 h-20 border rounded"
+                                  />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <Input
+                                    value={languageUrl}
+                                    readOnly
+                                    className="bg-gray-50 text-xs"
+                                  />
+                                  <p className="text-xs text-gray-500 mt-1">
+                                    Scan QR code to access form in {languageInfo?.name}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        })}
                       </div>
                     </CardContent>
                   </Card>
