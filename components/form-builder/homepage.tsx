@@ -292,26 +292,6 @@ export function Homepage({ currentLanguage, onCreateForm, onEditForm, onViewResp
                   </div>
                 </div>
 
-                {/* Response Counter */}
-                <div className={`flex items-center justify-between p-3 bg-gray-50 rounded-lg mb-3 ${isRTLLanguage ? "flex-row-reverse" : ""}`}>
-                  <div className={`flex items-center gap-2 ${isRTLLanguage ? "flex-row-reverse" : ""}`}>
-                    <BarChart3 className="w-4 h-4 text-gray-600" />
-                    <span className="text-sm font-medium text-gray-700">
-                      {getUITranslation("responses", currentLanguage)}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {form.responseCount === 0 ? (
-                      <Badge variant="secondary" className="text-gray-500">
-                        {getUITranslation("noResponses", currentLanguage)}
-                      </Badge>
-                    ) : (
-                      <Badge variant="default" className="bg-blue-600 hover:bg-blue-700 cursor-pointer">
-                        {form.responseCount} {form.responseCount === 1 ? getUITranslation("response", currentLanguage) : getUITranslation("responses", currentLanguage)}
-                      </Badge>
-                    )}
-                  </div>
-                </div>
 
                 {/* Action Buttons */}
                 <div className={`flex gap-2 ${isRTLLanguage ? "flex-row-reverse" : ""}`}>
@@ -327,7 +307,10 @@ export function Homepage({ currentLanguage, onCreateForm, onEditForm, onViewResp
                     disabled={form.responseCount === 0}
                   >
                     <BarChart3 className={`w-4 h-4 ${isRTLLanguage ? "ml-2 mr-0" : "mr-2"}`} />
-                    {form.responseCount === 0 ? getUITranslation("noResponses", currentLanguage) : getUITranslation("viewResponses", currentLanguage)}
+                    {form.responseCount === 0 
+                      ? getUITranslation("noResponses", currentLanguage)
+                      : `${form.responseCount} ${form.responseCount === 1 ? getUITranslation("response", currentLanguage) : getUITranslation("responses", currentLanguage)}`
+                    }
                   </Button>
                 </div>
 
