@@ -1,22 +1,31 @@
+import { redirect } from 'next/navigation'
+import { getCurrentUser } from '@/lib/auth/permissions'
 import { AppContainer } from "@/components/form-builder/app-container"
 import { prisma } from "@/lib/prisma"
 
 export default async function FormsPage() {
-  // Fetch forms on the server side
+  // Check authentication
+  const user = await getCurrentUser()
+  
+  if (!user) {
+    redirect('/auth/signin?callbackUrl=/forms')
+  }
+
+  // Fetch forms on the server side for the authenticated user
   try {
-    const adminUser = await prisma.user.findFirst({
-      where: { deleted_at: null }
-    })
-    
-    if (!adminUser) {
-      console.log('No users found')
-      return <AppContainer initialForms={[]} />
-    }
-    
     const forms = await prisma.form.findMany({
       where: { 
-        user_id: adminUser.id,
+        user_id: user.id,
         deleted_at: null 
+      },
+      include: {
+        _count: {
+          select: {
+            responses: {
+              where: { deleted_at: null }
+            }
+          }
+        }
       },
       orderBy: { created_at: 'desc' }
     })
@@ -32,16 +41,16 @@ export default async function FormsPage() {
         status: form.status,
         createdAt: new Date(form.created_at),
         updatedAt: new Date(form.updated_at),
-        responseCount: 0, // For now, skip the count
+        responseCount: form._count.responses,
         shareUrl: form.share_url,
         config,
         fields: [] // For now, skip the fields
       }
     })
     
-    return <AppContainer initialForms={transformedForms} />
+    return <AppContainer initialForms={transformedForms} user={user} />
   } catch (error) {
     console.error('Error fetching forms on server:', error)
-    return <AppContainer initialForms={[]} />
+    return <AppContainer initialForms={[]} user={user} />
   }
 }

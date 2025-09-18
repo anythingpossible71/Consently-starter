@@ -8,18 +8,16 @@ import { revalidatePath } from 'next/cache'
 export async function getForms() {
   try {
     console.log('getForms called')
-    // For now, get the first user (admin) to test - bypass authentication
-    const adminUser = await prisma.user.findFirst({
-      where: { deleted_at: null }
-    })
-    if (!adminUser) {
-      throw new Error('No users found')
+    // Get the current authenticated user
+    const user = await getCurrentUser()
+    if (!user) {
+      throw new Error('User not authenticated')
     }
-    console.log('Using admin user:', adminUser.email)
+    console.log('Using authenticated user:', user.email)
       
       const forms = await prisma.form.findMany({
         where: { 
-          user_id: adminUser.id,
+          user_id: user.id,
           deleted_at: null 
         },
         include: {
@@ -47,6 +45,7 @@ export async function getForms() {
       const transformedForms = forms.map(form => {
         const config = JSON.parse(form.config)
         
+        
         return {
           id: form.id,
           title: form.title,
@@ -73,35 +72,57 @@ export async function getForms() {
   }
 }
 
-export async function getForm(formId: string) {
+export async function getForm(formId: string, requireAuth: boolean = true) {
   try {
     console.log('getForm called for ID:', formId)
-    // For now, get the first user (admin) to test - bypass authentication
-    const adminUser = await prisma.user.findFirst({
-      where: { deleted_at: null }
-    })
-    if (!adminUser) {
-      throw new Error('No users found')
-    }
     
-    const form = await prisma.form.findFirst({
-      where: { 
-        id: formId,
-        user_id: adminUser.id,
-        deleted_at: null 
-      },
-      include: {
-        fields: {
-          where: { deleted_at: null },
-          include: {
-            translations: {
-              where: { deleted_at: null }
-            }
-          },
-          orderBy: { index: 'asc' }
-        }
+    let form;
+    
+    if (requireAuth) {
+      // Get the current authenticated user
+      const user = await getCurrentUser()
+      if (!user) {
+        throw new Error('User not authenticated')
       }
-    })
+      
+      form = await prisma.form.findFirst({
+        where: { 
+          id: formId,
+          user_id: user.id,
+          deleted_at: null 
+        },
+        include: {
+          fields: {
+            where: { deleted_at: null },
+            include: {
+              translations: {
+                where: { deleted_at: null }
+              }
+            },
+            orderBy: { index: 'asc' }
+          }
+        }
+      })
+    } else {
+      // Public access - no authentication required
+      form = await prisma.form.findFirst({
+        where: { 
+          id: formId,
+          deleted_at: null 
+        },
+        include: {
+          fields: {
+            where: { deleted_at: null },
+            include: {
+              translations: {
+                where: { deleted_at: null }
+              }
+            },
+            orderBy: { index: 'asc' }
+          }
+        }
+      })
+    }
 
     if (!form) {
       return { success: false, error: 'Form not found' }
@@ -158,12 +179,10 @@ export async function saveForm(formData: {
   fields: any[]
 }) {
   try {
-    // For now, get the first user (admin) to test - bypass authentication
-    const adminUser = await prisma.user.findFirst({
-      where: { deleted_at: null }
-    })
-    if (!adminUser) {
-      throw new Error('No users found')
+    // Get the current authenticated user
+    const user = await getCurrentUser()
+    if (!user) {
+      throw new Error('User not authenticated')
     }
 
     const { id, title, description, config, fields } = formData
@@ -262,7 +281,7 @@ export async function saveForm(formData: {
         const newForm = await tx.form.create({
           data: {
             id: generateId(),
-            user_id: adminUser.id,
+            user_id: user.id,
             title,
             description: description || null,
             status: 'published', // Always publish when saving
@@ -340,19 +359,17 @@ export async function saveForm(formData: {
 
 export async function deleteForm(formId: string) {
   try {
-    // For now, get the first user (admin) to test - bypass authentication
-    const adminUser = await prisma.user.findFirst({
-      where: { deleted_at: null }
-    })
-    if (!adminUser) {
-      throw new Error('No users found')
+    // Get the current authenticated user
+    const user = await getCurrentUser()
+    if (!user) {
+      throw new Error('User not authenticated')
     }
 
     // Check if form exists and belongs to user
     const existingForm = await prisma.form.findFirst({
       where: { 
         id: formId,
-        user_id: adminUser.id,
+        user_id: user.id,
         deleted_at: null 
       }
     })

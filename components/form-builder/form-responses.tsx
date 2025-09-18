@@ -30,6 +30,7 @@ export function FormResponses({ form, onClose }: FormResponsesProps) {
   const [error, setError] = useState<string | null>(null)
   const [selectedResponse, setSelectedResponse] = useState<FormResponse | null>(null)
 
+
   useEffect(() => {
     fetchResponses()
   }, [form.id])
@@ -121,13 +122,28 @@ export function FormResponses({ form, onClose }: FormResponsesProps) {
   if (responses.length === 0) {
     return (
       <div className="h-full flex items-center justify-center">
-        <div className="text-center">
-          <Eye className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No Responses Yet</h3>
-          <p className="text-gray-600 mb-4">
-            This form hasn't received any submissions yet.
+        <div className="text-center max-w-md mx-auto p-8">
+          <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Eye className="w-10 h-10 text-gray-400" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-3">No Responses Yet</h3>
+          <p className="text-gray-600 mb-6 leading-relaxed">
+            This form hasn't received any submissions yet. Once people start filling out your form, 
+            their responses will appear here.
           </p>
-          <Button onClick={onClose}>Back to Form</Button>
+          <div className="space-y-3">
+            <Button onClick={onClose} className="w-full">
+              Back to Form
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => window.open(`/forms/public/${form.id}`, '_blank')}
+              className="w-full"
+            >
+              <Globe className="w-4 h-4 mr-2" />
+              Preview Form
+            </Button>
+          </div>
         </div>
       </div>
     )
@@ -170,7 +186,7 @@ export function FormResponses({ form, onClose }: FormResponsesProps) {
                   <div className="flex items-center gap-2">
                     <Badge variant="secondary">
                       <Globe className="w-3 h-3 mr-1" />
-                      {response.data.language.toUpperCase()}
+                      {(response.data.language || 'en').toUpperCase()}
                     </Badge>
                     <Badge variant="outline">
                       <User className="w-3 h-3 mr-1" />

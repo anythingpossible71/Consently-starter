@@ -6,19 +6,38 @@ import { AppHeader } from "@/components/form-builder/app-header"
 import { SidebarMenu } from "@/components/form-builder/sidebar-menu"
 import { Homepage } from "@/components/form-builder/homepage"
 import { FormBuilder } from "@/components/form-builder/form-builder"
+import { FormResponses } from "@/components/form-builder/form-responses"
 import type { AppPage, User, FormData } from "@/types/form-builder/app-types"
-import { getForms } from "@/app/actions/forms"
+import { getForms, getForm } from "@/app/actions/forms"
 
 interface AppContainerProps {
   initialForms?: FormData[]
+  user?: User
 }
 
-export function AppContainer({ initialForms = [] }: AppContainerProps) {
+export function AppContainer({ initialForms = [], user: initialUser }: AppContainerProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [forms, setForms] = useState<FormData[]>(initialForms)
   const [isLoadingForms, setIsLoadingForms] = useState(false)
+  const [currentForm, setCurrentForm] = useState<FormData | null>(null)
+  const [isLoadingForm, setIsLoadingForm] = useState(false)
+
+  // Function to refresh forms data
+  const refreshForms = async () => {
+    setIsLoadingForms(true)
+    try {
+      const result = await getForms()
+      if (result.success && result.forms) {
+        setForms(result.forms)
+      }
+    } catch (error) {
+      console.error('Error refreshing forms:', error)
+    } finally {
+      setIsLoadingForms(false)
+    }
+  }
 
   // Get current state from URL
   const currentPage = (searchParams.get('page') as AppPage) || 'home'
@@ -26,13 +45,8 @@ export function AppContainer({ initialForms = [] }: AppContainerProps) {
   const isPreview = searchParams.get('preview') === 'true'
   const isResponses = searchParams.get('responses') === 'true'
 
-  // Mock user data - in real app, this would come from authentication
-  const [user] = useState<User>({
-    id: "1",
-    email: "user@example.com",
-    name: "John Doe",
-    avatar: undefined,
-  })
+  // Use the user from props or fallback to mock data
+  const [user] = useState<User | null>(initialUser || null)
 
   // Forms are now passed as props from server component
 
@@ -47,8 +61,8 @@ export function AppContainer({ initialForms = [] }: AppContainerProps) {
   }
 
   const handleLogout = () => {
-    // Implement logout logic
-    console.log("Logout")
+    // Redirect to sign out
+    router.push('/api/auth/signout')
   }
 
   const handleCreateForm = () => {
@@ -59,24 +73,25 @@ export function AppContainer({ initialForms = [] }: AppContainerProps) {
     router.push(`/forms?page=editor&formId=${formId}`)
   }
 
-  const handleViewResponses = (formId: string) => {
-    router.push(`/forms?page=responses&formId=${formId}`)
+  const handleViewResponses = async (formId: string) => {
+    setIsLoadingForm(true)
+    try {
+      const result = await getForm(formId)
+      if (result.success && result.form) {
+        setCurrentForm(result.form)
+        router.push(`/forms?page=responses&formId=${formId}`)
+      }
+    } catch (error) {
+      console.error('Error loading form:', error)
+    } finally {
+      setIsLoadingForm(false)
+    }
   }
 
   const handleNavigateHome = () => {
     router.push('/forms?page=home')
   }
 
-  const refreshForms = async () => {
-    try {
-      const result = await getForms()
-      if (result.success) {
-        setForms(result.forms)
-      }
-    } catch (error) {
-      console.error('Error refreshing forms:', error)
-    }
-  }
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -107,6 +122,7 @@ export function AppContainer({ initialForms = [] }: AppContainerProps) {
               onEditForm={handleEditForm}
               onViewResponses={handleViewResponses}
               forms={forms}
+              onRefreshForms={refreshForms}
             />
           )}
 
@@ -139,6 +155,27 @@ export function AppContainer({ initialForms = [] }: AppContainerProps) {
                   router.push(`/forms?${params.toString()}`)
                 }}
               />
+            </div>
+          )}
+
+          {currentPage === "responses" && currentForm && (
+            <div className="h-full">
+              <FormResponses
+                form={currentForm}
+                onClose={() => {
+                  setCurrentForm(null)
+                  handleNavigateHome()
+                }}
+              />
+            </div>
+          )}
+
+          {currentPage === "responses" && !currentForm && isLoadingForm && (
+            <div className="h-full flex items-center justify-center">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading form...</p>
+              </div>
             </div>
           )}
 

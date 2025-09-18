@@ -16,8 +16,8 @@ export default async function PublicFormPage({ params, searchParams }: PublicFor
   const searchParamsData = await searchParams
   const language = searchParamsData.lang || 'en'
   
-  // Get the form data
-  const result = await getForm(id)
+  // Get the form data (public access, no authentication required)
+  const result = await getForm(id, false)
   
   if (!result.success || !result.form) {
     notFound()
