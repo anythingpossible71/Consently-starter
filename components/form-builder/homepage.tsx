@@ -171,7 +171,7 @@ export function Homepage({ currentLanguage, onCreateForm, onEditForm, onViewResp
       </div>
 
       {/* Forms Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-24">
         {filteredForms.map((form) => {
           const selectedLang = getFormLanguage(form.id)
           const shareUrl = getShareUrl(form, selectedLang)

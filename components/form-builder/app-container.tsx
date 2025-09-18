@@ -114,7 +114,7 @@ export function AppContainer({ initialForms = [], user: initialUser }: AppContai
           />
         )}
 
-        <main className="flex-1 overflow-hidden">
+        <main className="flex-1 overflow-y-auto">
           {currentPage === "home" && (
             <Homepage
               currentLanguage="en"
