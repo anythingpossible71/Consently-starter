@@ -1,17 +1,28 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { getCurrentUser } from "@/lib/auth/permissions"
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params
 
-    // Get the form to verify it exists
+    // Check authentication
+    const user = await getCurrentUser()
+    if (!user) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      )
+    }
+
+    // Get the form to verify it exists and belongs to the user
     const form = await prisma.form.findFirst({
       where: { 
         id,
+        user_id: user.id,
         deleted_at: null 
       }
     })
