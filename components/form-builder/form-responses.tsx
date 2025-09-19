@@ -109,6 +109,29 @@ export function FormResponses({ form, onClose }: FormResponsesProps) {
     return field?.label || fieldId
   }
 
+  // Helper function to check if a value is a base64 image
+  const isBase64Image = (value: any): boolean => {
+    if (typeof value !== 'string') return false
+    return value.startsWith('data:image/') && value.includes('base64,')
+  }
+
+  // Helper function to render field value (text or image)
+  const renderFieldValue = (value: any) => {
+    if (isBase64Image(value)) {
+      return (
+        <div className="mt-2">
+          <img 
+            src={value} 
+            alt="Signature" 
+            className="max-w-full h-auto border border-gray-200 rounded"
+            style={{ maxHeight: '200px' }}
+          />
+        </div>
+      )
+    }
+    return <p className="text-sm text-gray-600 truncate">{String(value)}</p>
+  }
+
   if (isLoading) {
     return (
       <div className="h-full flex items-center justify-center">
@@ -216,9 +239,7 @@ export function FormResponses({ form, onClose }: FormResponsesProps) {
                         <p className="text-sm font-medium text-gray-700">
                           {getFieldLabel(fieldId)}
                         </p>
-                        <p className="text-sm text-gray-600 truncate">
-                          {String(value)}
-                        </p>
+                        {renderFieldValue(value)}
                       </div>
                     ))
                   })()}
@@ -256,14 +277,25 @@ export function FormResponses({ form, onClose }: FormResponsesProps) {
             </CardHeader>
             <CardContent className="overflow-y-auto max-h-[60vh]">
               <div className="space-y-6">
-                {Object.entries(selectedResponse.data.formData).map(([fieldId, value]) => (
+                {Object.entries(getFormData(selectedResponse)).map(([fieldId, value]) => (
                   <div key={fieldId} className="border-b pb-4">
                     <h4 className="font-medium text-gray-900 mb-2">
                       {getFieldLabel(fieldId)}
                     </h4>
-                    <p className="text-gray-700 whitespace-pre-wrap">
-                      {String(value)}
-                    </p>
+                    {isBase64Image(value) ? (
+                      <div className="mt-2">
+                        <img 
+                          src={value} 
+                          alt="Signature" 
+                          className="max-w-full h-auto border border-gray-200 rounded"
+                          style={{ maxHeight: '300px' }}
+                        />
+                      </div>
+                    ) : (
+                      <p className="text-gray-700 whitespace-pre-wrap">
+                        {String(value)}
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
