@@ -71,93 +71,9 @@ export function FormBuilder({ onNavigateHome, formId, isPreview = false, onPrevi
           })
         }
       } else {
-        // Initialize with sample data for new forms
-        const sampleFields: FormField[] = [
-          {
-            id: "field_1",
-            type: "text",
-            label: "First Name",
-            placeholder: "Enter your first name",
-            required: true,
-            showLabel: true,
-            requiredErrorMessage: "Please fill your first name",
-          },
-          {
-            id: "field_2",
-            type: "email",
-            label: "Email Address",
-            placeholder: "Enter your email",
-            required: true,
-            showLabel: true,
-            requiredErrorMessage: "Please fill your email",
-          },
-          {
-            id: "field_3",
-            type: "phone",
-            label: "Phone Number",
-            placeholder: "Enter your phone number",
-            required: false,
-            showLabel: true,
-            phoneSettings: {
-              format: "international",
-              defaultCountryCode: "US",
-              showCountrySelector: true,
-              enableValidation: true,
-              validationMessage: "Please enter a valid phone number",
-            },
-            requiredErrorMessage: "Please fill your phone number",
-          },
-          {
-            id: "field_4",
-            type: "textarea",
-            label: "Message",
-            placeholder: "Enter your message",
-            required: false,
-            showLabel: true,
-            requiredErrorMessage: "Please fill your message",
-          },
-          {
-            id: "field_5",
-            type: "multiple-choice",
-            label: "Choose your preference",
-            placeholder: "Select an option",
-            required: true,
-            showLabel: true,
-            options: ["Option 1", "Option 2", "Option 3"],
-            requiredErrorMessage: "Please select an option",
-          },
-          {
-            id: "field_6",
-            type: "file-upload",
-            label: "Upload Documents",
-            placeholder: "Choose files to upload",
-            required: true,
-            showLabel: true,
-            acceptedFileTypes: ".pdf,.doc,.docx,.jpg,.png",
-            maxFileSize: 10,
-            maxFiles: 3,
-            allowMultipleFiles: true,
-            requiredErrorMessage: "Please upload the required documents",
-          },
-          {
-            id: "field_7",
-            type: "signature",
-            label: "Digital Signature",
-            required: true,
-            showLabel: true,
-            signatureMethods: {
-              draw: true,
-              upload: true,
-            },
-            signatureSettings: {
-              showColorPicker: true,
-              defaultColor: "black",
-            },
-            requiredErrorMessage: "Please provide your signature",
-          },
-        ]
-        setFields(sampleFields)
-        setAllFields(sampleFields) // For new forms, allFields = fields (no submit field yet)
+        // Initialize with empty form for new forms
+        setFields([])
+        setAllFields([]) // For new forms, allFields = fields (no submit field yet)
       }
     }
 
