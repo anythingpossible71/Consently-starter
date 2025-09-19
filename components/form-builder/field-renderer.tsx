@@ -13,6 +13,7 @@ import { PenTool, Upload, Calendar, Send, Check, ArrowRight } from "lucide-react
 import { getTranslation, isRTL, getDefaultPlaceholder } from "@/utils/form-builder/translations"
 import { PhoneInput } from "./phone-input"
 import { SignatureModal } from "./signature-modal"
+import { FileUploadField } from "./file-upload-field"
 
 interface FieldRendererProps {
   field: FormField
@@ -164,11 +165,13 @@ export function FieldRenderer({ field, formConfig, currentLanguage = "en", value
 
       case "file-upload":
         return (
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center bg-gray-50">
-            <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-            <p className="text-sm text-gray-600">Click to upload or drag and drop</p>
-            <p className="text-xs text-gray-500 mt-1">PDF, DOC, JPG up to 10MB</p>
-          </div>
+          <FileUploadField
+            field={field}
+            value={value}
+            onChange={onChange}
+            disabled={!onChange}
+            error={error}
+          />
         )
 
       case "signature":
