@@ -30,14 +30,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className="forest">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <SessionProvider>
           <ThemeProvider
             attribute="class"
             defaultTheme="forest"
-            enableSystem
-            themes={["light", "dark", "system", "ocean", "forest", "midnight"]}
+            enableSystem={false}
+            themes={["light", "dark", "ocean", "forest", "midnight"]}
             disableTransitionOnChange
           >
             {children}
