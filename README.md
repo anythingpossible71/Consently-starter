@@ -2,6 +2,8 @@
 
 A production-ready Next.js starter template with authentication, admin dashboard, and role-based access control.
 
+test - trigger build
+
 ## Features
 
 - 🔐 **Complete Authentication System**
