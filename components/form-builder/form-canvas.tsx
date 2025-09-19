@@ -22,7 +22,6 @@ interface FormCanvasProps {
   onMoveFieldDown: (index: number) => void
   formTitle: string
   formDescription: string
-  onTitleChange: (title: string) => void
   onDescriptionChange: (description: string) => void
   currentLanguage: string
   formConfig?: FormConfig
@@ -41,14 +40,12 @@ export function FormCanvas({
   onMoveFieldDown,
   formTitle,
   formDescription,
-  onTitleChange,
   onDescriptionChange,
   currentLanguage,
   formConfig,
   scrollPosition = 0,
   onScrollPositionChange,
 }: FormCanvasProps) {
-  const [isEditingTitle, setIsEditingTitle] = useState(false)
   const [isEditingDescription, setIsEditingDescription] = useState(false)
   const isRTLLanguage = isRTL(currentLanguage)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -80,42 +77,24 @@ export function FormCanvas({
         style={{ margin: "20px auto", padding: "20px 20px 62px 20px" }}
         dir={isRTLLanguage ? "rtl" : "ltr"}
       >
-        {/* Form Header */}
+        {/* Form Description */}
         <div className="mb-8">
-          {isEditingTitle ? (
-            <Input
-              value={formTitle}
-              onChange={(e) => onTitleChange(e.target.value)}
-              onBlur={() => setIsEditingTitle(false)}
-              onKeyDown={(e) => e.key === "Enter" && setIsEditingTitle(false)}
-              className="text-2xl font-bold border-none shadow-none px-0 focus-visible:ring-0 form-title-input"
-              autoFocus
-            />
-          ) : (
-            <h1
-              className="text-2xl font-bold text-gray-900 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded"
-              onClick={() => setIsEditingTitle(true)}
-            >
-              {formTitle || getFormTranslation("formElements", "clickToAddTitle", currentLanguage)}
-            </h1>
-          )}
-
           {isEditingDescription ? (
             <Textarea
               value={formDescription}
               onChange={(e) => onDescriptionChange(e.target.value)}
               onBlur={() => setIsEditingDescription(false)}
-              className="mt-2 border-none shadow-none px-0 focus-visible:ring-0 resize-none form-description-input"
-              placeholder={getFormTranslation("formElements", "clickToAddDescription", currentLanguage)}
+              className="resize-none form-description-input"
+              placeholder="Add form description"
               autoFocus
             />
           ) : (
-            <p
-              className="text-gray-600 mt-2 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded min-h-[24px]"
+            <div
+              className="text-gray-600 cursor-pointer hover:bg-gray-50 px-3 py-2 rounded border border-gray-200 min-h-[40px] flex items-center"
               onClick={() => setIsEditingDescription(true)}
             >
-              {formDescription || getFormTranslation("formElements", "clickToAddDescription", currentLanguage)}
-            </p>
+              {formDescription || "Add form description"}
+            </div>
           )}
         </div>
 

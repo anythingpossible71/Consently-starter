@@ -576,7 +576,6 @@ export function FormBuilder({ onNavigateHome, formId, isPreview = false, onPrevi
               onMoveFieldDown={moveFieldDown}
               formTitle={formConfig.title}
               formDescription={formConfig.description}
-              onTitleChange={(title) => setFormConfig((prev) => ({ ...prev, title }))}
               onDescriptionChange={(description) => setFormConfig((prev) => ({ ...prev, description }))}
               currentLanguage={formConfig.language}
               formConfig={formConfig}

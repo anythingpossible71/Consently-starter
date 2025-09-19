@@ -30,17 +30,16 @@ export function FormEditorHeader({
   isPreview = false
 }: FormEditorHeaderProps) {
   return (
-    <div className="bg-white border-b border-gray-200 px-6 py-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={onBackToHome}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Home
+    <div className="bg-white border-b border-gray-200">
+      <div className="flex items-center justify-between px-4 py-4">
+        <div className="flex items-center gap-4 flex-1 mr-4">
+          <Button variant="ghost" size="sm" onClick={onBackToHome} className="p-2">
+            <ArrowLeft className="w-4 h-4" />
           </Button>
           <Input
             value={formTitle}
             onChange={(e) => onTitleChange(e.target.value)}
-            className="text-xl font-semibold border-none shadow-none px-0 focus-visible:ring-0"
+            className="flex-1 text-lg md:text-lg font-semibold border-none shadow-none px-0 focus-visible:ring-0"
             placeholder="Untitled Form"
           />
         </div>

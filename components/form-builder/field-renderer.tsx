@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
@@ -11,6 +12,7 @@ import type { FormConfig } from "@/types/form-builder/form-config"
 import { PenTool, Upload, Calendar, Send, Check, ArrowRight } from "lucide-react"
 import { getTranslation, isRTL, getDefaultPlaceholder } from "@/utils/form-builder/translations"
 import { PhoneInput } from "./phone-input"
+import { SignatureModal } from "./signature-modal"
 
 interface FieldRendererProps {
   field: FormField
@@ -28,6 +30,7 @@ export function FieldRenderer({ field, formConfig, currentLanguage = "en", value
   }
 
   const isRTLLanguage = isRTL(config.language)
+  const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false)
 
   const renderField = () => {
     switch (field.type) {
@@ -169,28 +172,62 @@ export function FieldRenderer({ field, formConfig, currentLanguage = "en", value
         )
 
       case "signature":
+        const hasSignature = value && value.trim() !== ""
         return (
-          <div className="border-2 border-dashed border-blue-300 rounded-lg p-8 text-center bg-blue-50">
-            <PenTool className="w-12 h-12 text-blue-600 mx-auto mb-3" />
-            <h3 className="text-lg font-medium text-blue-900 mb-2">Electronic Signature</h3>
-            <p className="text-sm text-blue-700 mb-4">Click to sign with your finger, mouse, or upload signature</p>
-            <Button
-              variant="outline"
-              className="border-blue-300 text-blue-700 hover:bg-blue-100 bg-transparent"
-              onClick={() => {
-                // This will be handled by the parent component
-              }}
-            >
-              Click to Sign
-            </Button>
-            <div
-              className={`flex justify-center mt-3 text-xs text-blue-600 ${isRTLLanguage ? "space-x-reverse space-x-4" : "space-x-4"}`}
-            >
-              <span>✓ High Resolution</span>
-              <span>✓ Legally Compliant</span>
-              <span>✓ Timestamped</span>
+          <>
+            <div className="border-2 border-dashed border-blue-300 rounded-lg p-8 text-center bg-blue-50">
+              {hasSignature ? (
+                <div className="space-y-4">
+                  <div className="w-full h-32 border border-gray-200 rounded bg-white flex items-center justify-center">
+                    <img 
+                      src={value} 
+                      alt="Signature" 
+                      className="max-h-full max-w-full object-contain"
+                    />
+                  </div>
+                  <Button
+                    variant="outline"
+                    className="border-blue-300 text-blue-700 hover:bg-blue-100 bg-transparent"
+                    onClick={() => setIsSignatureModalOpen(true)}
+                  >
+                    <PenTool className="w-4 h-4 mr-2" />
+                    Edit Signature
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <PenTool className="w-12 h-12 text-blue-600 mx-auto mb-3" />
+                  <h3 className="text-lg font-medium text-blue-900 mb-2">Electronic Signature</h3>
+                  <p className="text-sm text-blue-700 mb-4">Click to sign with your finger, mouse, or upload signature</p>
+                  <Button
+                    variant="outline"
+                    className="border-blue-300 text-blue-700 hover:bg-blue-100 bg-transparent"
+                    onClick={() => setIsSignatureModalOpen(true)}
+                  >
+                    Click to Sign
+                  </Button>
+                </>
+              )}
+              <div
+                className={`flex justify-center mt-3 text-xs text-blue-600 ${isRTLLanguage ? "space-x-reverse space-x-4" : "space-x-4"}`}
+              >
+                <span>✓ High Resolution</span>
+                <span>✓ Legally Compliant</span>
+                <span>✓ Timestamped</span>
+              </div>
             </div>
-          </div>
+            
+            <SignatureModal
+              isOpen={isSignatureModalOpen}
+              onClose={() => setIsSignatureModalOpen(false)}
+              onSave={(signatureData) => {
+                onChange?.(signatureData)
+                setIsSignatureModalOpen(false)
+              }}
+              field={field}
+              currentSignature={value}
+            />
+          </>
         )
 
       case "heading":
