@@ -256,6 +256,7 @@ export const translations = {
     noForms: "אין טפסים עדיין",
     createFirstForm: "צור את הטופס הראשון שלך כדי להתחיל",
     createForm: "צור טופס",
+    option: "אפשרות",
   },
 }
 
@@ -268,7 +269,13 @@ export function getTranslation(key: string, language: string): string {
 export function getUITranslation(key: string, language: string): string {
   const lang = language as keyof typeof uiTranslations
   const translation = uiTranslations[lang]?.[key as keyof (typeof uiTranslations)["en"]]
-  return translation || uiTranslations.en[key as keyof (typeof uiTranslations)["en"]] || key
+  const fallbackTranslation = uiTranslations.en[key as keyof (typeof uiTranslations)["en"]]
+
+  // Handle string translations
+  if (typeof translation === "string") return translation
+  if (typeof fallbackTranslation === "string") return fallbackTranslation
+
+  return key
 }
 
 export function getFormTranslation(category: string, key: string, language: string): string {

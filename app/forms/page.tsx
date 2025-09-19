@@ -37,12 +37,12 @@ export default async function FormsPage() {
       return {
         id: form.id,
         title: form.title,
-        description: form.description,
-        status: form.status,
+        description: form.description ?? undefined,
+        status: form.status as "draft" | "published",
         createdAt: new Date(form.created_at),
         updatedAt: new Date(form.updated_at),
         responseCount: form._count.responses,
-        shareUrl: form.share_url,
+        shareUrl: form.share_url ?? undefined,
         config,
         fields: [] // For now, skip the fields
       }

@@ -49,12 +49,12 @@ export async function getForms() {
         return {
           id: form.id,
           title: form.title,
-          description: form.description,
-          status: form.status,
+          description: form.description ?? undefined,
+          status: form.status as "draft" | "published",
           createdAt: form.created_at,
           updatedAt: form.updated_at,
           responseCount: form._count.responses,
-          shareUrl: form.share_url,
+          shareUrl: form.share_url ?? undefined,
           config,
           fields: form.fields.map(field => ({
             id: field.id,
@@ -86,10 +86,10 @@ export async function getForm(formId: string, requireAuth: boolean = true) {
       }
       
       form = await prisma.form.findFirst({
-        where: { 
+        where: {
           id: formId,
           user_id: user.id,
-          deleted_at: null 
+          deleted_at: null
         },
         include: {
           fields: {
@@ -100,15 +100,22 @@ export async function getForm(formId: string, requireAuth: boolean = true) {
               }
             },
             orderBy: { index: 'asc' }
+          },
+          _count: {
+            select: {
+              responses: {
+                where: { deleted_at: null }
+              }
+            }
           }
         }
       })
     } else {
       // Public access - no authentication required
       form = await prisma.form.findFirst({
-        where: { 
+        where: {
           id: formId,
-          deleted_at: null 
+          deleted_at: null
         },
         include: {
           fields: {
@@ -119,6 +126,13 @@ export async function getForm(formId: string, requireAuth: boolean = true) {
               }
             },
             orderBy: { index: 'asc' }
+          },
+          _count: {
+            select: {
+              responses: {
+                where: { deleted_at: null }
+              }
+            }
           }
         }
       })
@@ -155,11 +169,12 @@ export async function getForm(formId: string, requireAuth: boolean = true) {
     const transformedForm = {
       id: form.id,
       title: form.title,
-      description: form.description,
-      status: form.status,
+      description: form.description ?? undefined,
+      status: form.status as "draft" | "published",
       createdAt: form.created_at,
       updatedAt: form.updated_at,
-      shareUrl: form.share_url,
+      responseCount: form._count.responses,
+      shareUrl: form.share_url ?? undefined,
       config,
       fields: transformedFields
     }

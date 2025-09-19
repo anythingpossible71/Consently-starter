@@ -51,7 +51,7 @@ export function AppHeader({ currentLanguage, user, onMenuToggle, onNavigateHome,
                 className="flex items-center gap-2 p-2"
               >
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={user.avatar} alt={user.name} />
+                  <AvatarImage src={user.avatar ?? undefined} alt={user.name ?? undefined} />
                   <AvatarFallback className="text-xs">
                     {getUserInitials(user.name)}
                   </AvatarFallback>
@@ -69,7 +69,7 @@ export function AppHeader({ currentLanguage, user, onMenuToggle, onNavigateHome,
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
               <Avatar className="h-10 w-10">
-                <AvatarImage src={user?.avatar} alt={user?.name} />
+                <AvatarImage src={user?.avatar ?? undefined} alt={user?.name ?? undefined} />
                 <AvatarFallback>
                   {user ? getUserInitials(user.name) : <User className="h-5 w-5" />}
                 </AvatarFallback>

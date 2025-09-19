@@ -45,8 +45,9 @@ export function DraggableField({
   formConfig,
 }: DraggableFieldProps) {
   const ref = useRef<HTMLDivElement>(null)
+  const dragRef = useRef<HTMLDivElement>(null)
 
-  const [{ handlerId }, drop] = useDrop({
+  const [{ handlerId }, drop] = useDrop<DragItem, void, { handlerId: unknown }>({
     accept: "field",
     collect(monitor) {
       return {
@@ -115,7 +116,8 @@ export function DraggableField({
   const opacity = isDragging ? 0.4 : 1
 
   // Connect drag and drop refs
-  drag(drop(ref))
+  drag(dragRef)
+  drop(ref)
 
   const canMoveUp = index > 0
   const canMoveDown = index < totalFields - 1
@@ -204,7 +206,7 @@ export function DraggableField({
       {/* Drag Handle - Always positioned on the left (LTR) - hidden for submit fields */}
       {field.type !== 'submit' && (
         <div className="absolute top-1/2 left-2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <div ref={drag} className="cursor-move p-1 hover:bg-gray-100 rounded" onClick={(e) => e.stopPropagation()}>
+          <div ref={dragRef} className="cursor-move p-1 hover:bg-gray-100 rounded" onClick={(e) => e.stopPropagation()}>
             <GripVertical className="w-4 h-4 text-gray-400" />
           </div>
         </div>

@@ -66,55 +66,77 @@ async function seedForms() {
           icon: "send"
         }
       }),
-      fields: JSON.stringify([
-        {
-          id: generateId(),
-          type: "text",
-          label: "Full Name",
-          placeholder: "Enter your full name",
-          helpText: "",
-          required: true,
-          showLabel: true,
-          requiredErrorMessage: "Please enter your full name"
-        },
-        {
-          id: generateId(),
-          type: "email",
-          label: "Email Address",
-          placeholder: "Enter your email address",
-          helpText: "",
-          required: true,
-          showLabel: true,
-          requiredErrorMessage: "Please enter a valid email address"
-        },
-        {
-          id: generateId(),
-          type: "phone",
-          label: "Phone Number",
-          placeholder: "Enter your phone number",
-          helpText: "",
-          required: false,
-          showLabel: true,
-          phoneSettings: {
-            format: "national",
-            defaultCountryCode: "US",
-            showCountrySelector: true,
-            enableValidation: true,
-            validationMessage: "Please enter a valid phone number"
+      fields: {
+        create: [
+          {
+            id: generateId(),
+            index: 0,
+            type: "text",
+            config: JSON.stringify({
+              id: generateId(),
+              type: "text",
+              label: "Full Name",
+              placeholder: "Enter your full name",
+              helpText: "",
+              required: true,
+              showLabel: true,
+              requiredErrorMessage: "Please enter your full name"
+            })
           },
-          requiredErrorMessage: "Please enter a valid phone number"
-        },
-        {
-          id: generateId(),
-          type: "textarea",
-          label: "Message",
-          placeholder: "Enter your message here...",
-          helpText: "",
-          required: true,
-          showLabel: true,
-          requiredErrorMessage: "Please enter your message"
-        }
-      ])
+          {
+            id: generateId(),
+            index: 1,
+            type: "email",
+            config: JSON.stringify({
+              id: generateId(),
+              type: "email",
+              label: "Email Address",
+              placeholder: "Enter your email address",
+              helpText: "",
+              required: true,
+              showLabel: true,
+              requiredErrorMessage: "Please enter a valid email address"
+            })
+          },
+          {
+            id: generateId(),
+            index: 2,
+            type: "phone",
+            config: JSON.stringify({
+              id: generateId(),
+              type: "phone",
+              label: "Phone Number",
+              placeholder: "Enter your phone number",
+              helpText: "",
+              required: false,
+              showLabel: true,
+              phoneSettings: {
+                format: "national",
+                defaultCountryCode: "US",
+                showCountrySelector: true,
+                enableValidation: true,
+                validationMessage: "Please enter a valid phone number"
+              },
+              requiredErrorMessage: "Please enter a valid phone number"
+            })
+          },
+          {
+            id: generateId(),
+            index: 3,
+            type: "textarea",
+            config: JSON.stringify({
+              id: generateId(),
+              type: "textarea",
+              label: "Message",
+              placeholder: "Enter your message here...",
+              helpText: "",
+              required: true,
+              showLabel: true,
+              requiredErrorMessage: "Please enter your message"
+            })
+          }
+        ]
+      }
     }
   })
 
@@ -163,65 +185,92 @@ async function seedForms() {
           icon: "check"
         }
       }),
-      fields: JSON.stringify([
-        {
-          id: generateId(),
-          type: "text",
-          label: "Full Name",
-          placeholder: "Enter your full name",
-          helpText: "",
-          required: true,
-          showLabel: true,
-          requiredErrorMessage: "Please enter your full name"
-        },
-        {
-          id: generateId(),
-          type: "email",
-          label: "Email Address",
-          placeholder: "Enter your email address",
-          helpText: "",
-          required: true,
-          showLabel: true,
-          requiredErrorMessage: "Please enter a valid email address"
-        },
-        {
-          id: generateId(),
-          type: "phone",
-          label: "Phone Number",
-          placeholder: "Enter your phone number",
-          helpText: "",
-          required: true,
-          showLabel: true,
-          phoneSettings: {
-            format: "national",
-            defaultCountryCode: "US",
-            showCountrySelector: true,
-            enableValidation: true,
-            validationMessage: "Please enter a valid phone number"
+      fields: {
+        create: [
+          {
+            id: generateId(),
+            index: 0,
+            type: "text",
+            config: JSON.stringify({
+              id: generateId(),
+              type: "text",
+              label: "Full Name",
+              placeholder: "Enter your full name",
+              helpText: "",
+              required: true,
+              showLabel: true,
+              requiredErrorMessage: "Please enter your full name"
+            })
           },
-          requiredErrorMessage: "Please enter a valid phone number"
-        },
-        {
-          id: generateId(),
-          type: "multiple-choice",
-          label: "Dietary Requirements",
-          helpText: "Please let us know about any dietary restrictions",
-          required: false,
-          showLabel: true,
-          options: ["None", "Vegetarian", "Vegan", "Gluten-free", "Other"],
-          requiredErrorMessage: "Please select an option"
-        },
-        {
-          id: generateId(),
-          type: "textarea",
-          label: "Special Requests",
-          placeholder: "Any special requests or accommodations needed?",
-          helpText: "",
-          required: false,
-          showLabel: true,
-          requiredErrorMessage: "This field is required"
-        }
-      ])
+          {
+            id: generateId(),
+            index: 1,
+            type: "email",
+            config: JSON.stringify({
+              id: generateId(),
+              type: "email",
+              label: "Email Address",
+              placeholder: "Enter your email address",
+              helpText: "",
+              required: true,
+              showLabel: true,
+              requiredErrorMessage: "Please enter a valid email address"
+            })
+          },
+          {
+            id: generateId(),
+            index: 2,
+            type: "phone",
+            config: JSON.stringify({
+              id: generateId(),
+              type: "phone",
+              label: "Phone Number",
+              placeholder: "Enter your phone number",
+              helpText: "",
+              required: true,
+              showLabel: true,
+              phoneSettings: {
+                format: "national",
+                defaultCountryCode: "US",
+                showCountrySelector: true,
+                enableValidation: true,
+                validationMessage: "Please enter a valid phone number"
+              },
+              requiredErrorMessage: "Please enter a valid phone number"
+            })
+          },
+          {
+            id: generateId(),
+            index: 3,
+            type: "multiple-choice",
+            config: JSON.stringify({
+              id: generateId(),
+              type: "multiple-choice",
+              label: "Dietary Requirements",
+              helpText: "Please let us know about any dietary restrictions",
+              required: false,
+              showLabel: true,
+              options: ["None", "Vegetarian", "Vegan", "Gluten-free", "Other"],
+              requiredErrorMessage: "Please select an option"
+            })
+          },
+          {
+            id: generateId(),
+            index: 4,
+            type: "textarea",
+            config: JSON.stringify({
+              id: generateId(),
+              type: "textarea",
+              label: "Special Requests",
+              placeholder: "Any special requests or accommodations needed?",
+              helpText: "",
+              required: false,
+              showLabel: true,
+              requiredErrorMessage: "This field is required"
+            })
+          }
+        ]
+      }
     }
   })
 
@@ -270,58 +319,85 @@ async function seedForms() {
           icon: "send"
         }
       }),
-      fields: JSON.stringify([
-        {
-          id: generateId(),
-          type: "multiple-choice",
-          label: "How satisfied are you?",
-          helpText: "Please rate your overall satisfaction",
-          required: true,
-          showLabel: true,
-          options: ["Very Satisfied", "Satisfied", "Neutral", "Dissatisfied", "Very Dissatisfied"],
-          requiredErrorMessage: "Please select your satisfaction level"
-        },
-        {
-          id: generateId(),
-          type: "checkboxes",
-          label: "What did you like most?",
-          helpText: "Select all that apply",
-          required: false,
-          showLabel: true,
-          options: ["Product Quality", "Customer Service", "Price", "Delivery Speed", "Website Experience"],
-          requiredErrorMessage: "Please select at least one option"
-        },
-        {
-          id: generateId(),
-          type: "textarea",
-          label: "Additional Comments",
-          placeholder: "Please share any additional feedback...",
-          helpText: "",
-          required: false,
-          showLabel: true,
-          requiredErrorMessage: "This field is required"
-        },
-        {
-          id: generateId(),
-          type: "text",
-          label: "Your Name (Optional)",
-          placeholder: "Enter your name",
-          helpText: "",
-          required: false,
-          showLabel: true,
-          requiredErrorMessage: "Please enter your name"
-        },
-        {
-          id: generateId(),
-          type: "email",
-          label: "Email (Optional)",
-          placeholder: "Enter your email address",
-          helpText: "We'll use this to follow up if needed",
-          required: false,
-          showLabel: true,
-          requiredErrorMessage: "Please enter a valid email address"
-        }
-      ])
+      fields: {
+        create: [
+          {
+            id: generateId(),
+            index: 0,
+            type: "multiple-choice",
+            config: JSON.stringify({
+              id: generateId(),
+              type: "multiple-choice",
+              label: "How satisfied are you?",
+              helpText: "Please rate your overall satisfaction",
+              required: true,
+              showLabel: true,
+              options: ["Very Satisfied", "Satisfied", "Neutral", "Dissatisfied", "Very Dissatisfied"],
+              requiredErrorMessage: "Please select your satisfaction level"
+            })
+          },
+          {
+            id: generateId(),
+            index: 1,
+            type: "checkboxes",
+            config: JSON.stringify({
+              id: generateId(),
+              type: "checkboxes",
+              label: "What did you like most?",
+              helpText: "Select all that apply",
+              required: false,
+              showLabel: true,
+              options: ["Product Quality", "Customer Service", "Price", "Delivery Speed", "Website Experience"],
+              requiredErrorMessage: "Please select at least one option"
+            })
+          },
+          {
+            id: generateId(),
+            index: 2,
+            type: "textarea",
+            config: JSON.stringify({
+              id: generateId(),
+              type: "textarea",
+              label: "Additional Comments",
+              placeholder: "Please share any additional feedback...",
+              helpText: "",
+              required: false,
+              showLabel: true,
+              requiredErrorMessage: "This field is required"
+            })
+          },
+          {
+            id: generateId(),
+            index: 3,
+            type: "text",
+            config: JSON.stringify({
+              id: generateId(),
+              type: "text",
+              label: "Your Name (Optional)",
+              placeholder: "Enter your name",
+              helpText: "",
+              required: false,
+              showLabel: true,
+              requiredErrorMessage: "Please enter your name"
+            })
+          },
+          {
+            id: generateId(),
+            index: 4,
+            type: "email",
+            config: JSON.stringify({
+              id: generateId(),
+              type: "email",
+              label: "Email (Optional)",
+              placeholder: "Enter your email address",
+              helpText: "We'll use this to follow up if needed",
+              required: false,
+              showLabel: true,
+              requiredErrorMessage: "Please enter a valid email address"
+            })
+          }
+        ]
+      }
     }
   })
 

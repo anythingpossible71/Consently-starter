@@ -50,6 +50,10 @@ export interface FormField {
   maxFileSize?: number
   maxFiles?: number
   allowMultipleFiles?: boolean
+  // Rich text content for text-block fields
+  richTextContent?: string
+  // Translations for multi-language support
+  translations?: Record<string, Record<string, string>>
 }
 
 export interface ValidationError {

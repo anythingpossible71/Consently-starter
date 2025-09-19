@@ -150,16 +150,16 @@ export function FormCanvas({
                 label: "Submit Button",
                 required: false,
                 showLabel: false,
-                buttonText: formConfig.submitButton.text,
-                buttonIcon: formConfig.submitButton.icon,
-                buttonStyle: formConfig.submitButton.style,
+                buttonText: formConfig?.submitButton.text || "Submit",
+                buttonIcon: formConfig?.submitButton.icon || "send",
+                buttonStyle: formConfig?.submitButton.style || "primary",
               }
               onSelectField(submitField)
             }}
           >
             <Button className={`px-8 py-3 ${
-              formConfig.submitButton.style === "primary" ? "bg-blue-600 hover:bg-blue-700 text-white" :
-              formConfig.submitButton.style === "secondary" ? "bg-gray-600 hover:bg-gray-700 text-white" :
+              formConfig?.submitButton.style === "primary" ? "bg-blue-600 hover:bg-blue-700 text-white" :
+              formConfig?.submitButton.style === "secondary" ? "bg-gray-600 hover:bg-gray-700 text-white" :
               "bg-green-600 hover:bg-green-700 text-white"
             }`}>
               {(() => {
@@ -168,10 +168,10 @@ export function FormCanvas({
                   check: Check,
                   arrow: ArrowRight,
                 }
-                const IconComponent = iconMap[formConfig.submitButton.icon as keyof typeof iconMap] || Send
+                const IconComponent = iconMap[formConfig?.submitButton.icon as keyof typeof iconMap] || Send
                 return <IconComponent className={`w-4 h-4 ${isRTLLanguage ? "ml-2 mr-0" : "mr-2"}`} />
               })()}
-              {formConfig.submitButton.text}
+              {formConfig?.submitButton.text || "Submit"}
             </Button>
 
             {/* Edit indicator - UI controls stay LTR positioned */}

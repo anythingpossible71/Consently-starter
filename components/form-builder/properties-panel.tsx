@@ -28,7 +28,7 @@ import {
   Maximize2,
 } from "lucide-react"
 import { getUITranslation, getFormTranslation, isRTL, getDefaultPlaceholder } from "@/utils/form-builder/translations"
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { ThemeEditor } from "./theme-editor"
 import { CountrySelector } from "./country-selector"
 import { RichTextEditor, RichTextModal } from "./rich-text-editor"
@@ -45,6 +45,8 @@ interface DraggableOptionProps {
 }
 
 function DraggableOption({ option, index, moveOption, updateOption, removeOption, isRTL }: DraggableOptionProps) {
+  const ref = useRef<HTMLDivElement>(null)
+
   const [{ isDragging }, drag] = useDrag({
     type: "option",
     item: { index },
@@ -63,9 +65,11 @@ function DraggableOption({ option, index, moveOption, updateOption, removeOption
     },
   })
 
+  drag(drop(ref))
+
   return (
     <div
-      ref={(node) => drag(drop(node))}
+      ref={ref}
       className={`flex items-center gap-2 ${isRTL ? "flex-row-reverse" : ""} ${
         isDragging ? "opacity-50" : ""
       } cursor-move`}
@@ -177,8 +181,8 @@ export function PropertiesPanel({
     const newLanguageTexts = {
       ...formConfig.languageTexts,
       [languageToAdd]: {
-        formTitle: "",
-        formDescription: "",
+        formTitle: {},
+        formDescription: {},
         fieldLabels: {},
         fieldPlaceholders: {},
         fieldOptions: {},
@@ -211,12 +215,15 @@ export function PropertiesPanel({
   }
 
   const updateLanguageText = (langCode: string, category: string, key: string, value: string) => {
+    const currentLangTexts = formConfig.languageTexts?.[langCode] as any || {}
+    const currentCategoryTexts = currentLangTexts[category] as any || {}
+
     const newLanguageTexts = {
       ...formConfig.languageTexts,
       [langCode]: {
-        ...formConfig.languageTexts?.[langCode],
+        ...currentLangTexts,
         [category]: {
-          ...formConfig.languageTexts?.[langCode]?.[category],
+          ...currentCategoryTexts,
           [key]: value,
         },
       },
@@ -225,7 +232,8 @@ export function PropertiesPanel({
   }
 
   const getLanguageText = (langCode: string, category: string, key: string): string => {
-    return formConfig.languageTexts?.[langCode]?.[category]?.[key] || ""
+    const langTexts = formConfig.languageTexts?.[langCode] as any
+    return langTexts?.[category]?.[key] || ""
   }
 
   const supportedLanguages = formConfig.supportedLanguages || [formConfig.language]
@@ -757,7 +765,7 @@ export function PropertiesPanel({
 
       <div className="flex-1 overflow-y-auto">
         <div className="p-6 pb-20 text-left">
-          {panelMode === "field" && selectedField?.type === "rich-text" ? (
+          {panelMode === "field" && selectedField?.type === "text-block" ? (
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm font-medium">Rich Text Properties</CardTitle>
@@ -905,7 +913,6 @@ export function PropertiesPanel({
               <CardContent className="space-y-4">
                 {selectedField.type !== "heading" &&
                   selectedField.type !== "text-block" &&
-                  selectedField.type !== "rich-text" &&
                   selectedField.type !== "submit" && (
                     <div className="flex items-center justify-between">
                       <Label className="text-xs font-medium text-gray-700">
@@ -932,7 +939,6 @@ export function PropertiesPanel({
 
                 {selectedField.type !== "heading" &&
                   selectedField.type !== "text-block" &&
-                  selectedField.type !== "rich-text" &&
                   selectedField.type !== "submit" &&
                   selectedField.type !== "multiple-choice" &&
                   selectedField.type !== "checkboxes" && (
@@ -974,7 +980,6 @@ export function PropertiesPanel({
 
                 {selectedField.type !== "heading" &&
                   selectedField.type !== "text-block" &&
-                  selectedField.type !== "rich-text" &&
                   selectedField.type !== "submit" && (
                     <div className="flex items-center justify-between">
                       <Label className="text-xs font-medium text-gray-700">
@@ -989,7 +994,6 @@ export function PropertiesPanel({
 
                 {selectedField.type !== "heading" &&
                   selectedField.type !== "text-block" &&
-                  selectedField.type !== "rich-text" &&
                   selectedField.type !== "submit" && (
                     <div>
                       <Label className="text-xs font-medium text-gray-700">Required Error Message</Label>
@@ -1012,6 +1016,10 @@ export function PropertiesPanel({
                         onValueChange={(value) =>
                           onUpdateField(selectedField.id, {
                             phoneSettings: {
+                              defaultCountryCode: "US",
+                              showCountrySelector: true,
+                              enableValidation: true,
+                              validationMessage: "Please enter a valid phone number",
                               ...selectedField.phoneSettings,
                               format: value as "national" | "international",
                             },
@@ -1037,6 +1045,10 @@ export function PropertiesPanel({
                             onCheckedChange={(checked) =>
                               onUpdateField(selectedField.id, {
                                 phoneSettings: {
+                                  format: "international",
+                                  defaultCountryCode: "US",
+                                  enableValidation: true,
+                                  validationMessage: "Please enter a valid phone number",
                                   ...selectedField.phoneSettings,
                                   showCountrySelector: checked,
                                 },
@@ -1053,6 +1065,10 @@ export function PropertiesPanel({
                               onCountryChange={(country) =>
                                 onUpdateField(selectedField.id, {
                                   phoneSettings: {
+                                    format: "international",
+                                    showCountrySelector: true,
+                                    enableValidation: true,
+                                    validationMessage: "Please enter a valid phone number",
                                     ...selectedField.phoneSettings,
                                     defaultCountryCode: country,
                                   },
@@ -1072,6 +1088,10 @@ export function PropertiesPanel({
                         onCheckedChange={(checked) =>
                           onUpdateField(selectedField.id, {
                             phoneSettings: {
+                              format: "international",
+                              defaultCountryCode: "US",
+                              showCountrySelector: true,
+                              validationMessage: "Please enter a valid phone number",
                               ...selectedField.phoneSettings,
                               enableValidation: checked,
                             },
@@ -1088,6 +1108,10 @@ export function PropertiesPanel({
                           onChange={(e) =>
                             onUpdateField(selectedField.id, {
                               phoneSettings: {
+                                format: "international",
+                                defaultCountryCode: "US",
+                                showCountrySelector: true,
+                                enableValidation: true,
                                 ...selectedField.phoneSettings,
                                 validationMessage: e.target.value,
                               },
@@ -1140,6 +1164,7 @@ export function PropertiesPanel({
                             onCheckedChange={(checked) =>
                               onUpdateField(selectedField.id, {
                                 signatureMethods: {
+                                  upload: true,
                                   ...selectedField.signatureMethods,
                                   draw: checked,
                                 },
@@ -1154,6 +1179,7 @@ export function PropertiesPanel({
                             onCheckedChange={(checked) =>
                               onUpdateField(selectedField.id, {
                                 signatureMethods: {
+                                  draw: true,
                                   ...selectedField.signatureMethods,
                                   upload: checked,
                                 },
@@ -1174,6 +1200,7 @@ export function PropertiesPanel({
                             onCheckedChange={(checked) =>
                               onUpdateField(selectedField.id, {
                                 signatureSettings: {
+                                  defaultColor: "black",
                                   ...selectedField.signatureSettings,
                                   showColorPicker: checked,
                                 },
@@ -1188,6 +1215,7 @@ export function PropertiesPanel({
                             onValueChange={(value) =>
                               onUpdateField(selectedField.id, {
                                 signatureSettings: {
+                                  showColorPicker: true,
                                   ...selectedField.signatureSettings,
                                   defaultColor: value as "black" | "blue" | "red",
                                 },

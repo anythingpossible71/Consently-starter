@@ -4,15 +4,16 @@ import { prisma } from '@/lib/prisma'
 // GET /api/public/forms/[id] - Get a form for public viewing/submission
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const { searchParams } = new URL(request.url)
     const language = searchParams.get('lang') || 'en'
 
     const form = await prisma.form.findFirst({
-      where: { 
-        id: params.id,
+      where: {
+        id: id,
         status: 'published', // Only serve published forms
         deleted_at: null 
       },
@@ -85,16 +86,17 @@ export async function GET(
 // POST /api/public/forms/[id] - Submit a form response
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const body = await request.json()
     const { data } = body
 
     // Check if form exists and is published
     const form = await prisma.form.findFirst({
-      where: { 
-        id: params.id,
+      where: {
+        id: id,
         status: 'published',
         deleted_at: null 
       }
@@ -113,7 +115,7 @@ export async function POST(
     // Create the form response
     const response = await prisma.formResponse.create({
       data: {
-        form_id: params.id,
+        form_id: id,
         data: JSON.stringify(data),
         ip_address: ip,
         user_agent: userAgent
@@ -122,7 +124,7 @@ export async function POST(
 
     // Update form response count
     await prisma.form.update({
-      where: { id: params.id },
+      where: { id: id },
       data: {
         response_count: {
           increment: 1

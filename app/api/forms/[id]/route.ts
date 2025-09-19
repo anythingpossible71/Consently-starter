@@ -5,7 +5,7 @@ import { getCurrentUser } from '@/lib/auth/permissions'
 // GET /api/forms/[id] - Get a specific form
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser()
@@ -13,11 +13,12 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     const form = await prisma.form.findFirst({
-      where: { 
-        id: params.id,
+      where: {
+        id: id,
         user_id: user.id,
-        deleted_at: null 
+        deleted_at: null
       },
       include: {
         fields: {
@@ -93,7 +94,7 @@ export async function GET(
 // PUT /api/forms/[id] - Update a specific form
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser()
@@ -101,15 +102,16 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     const body = await request.json()
     const { title, description, status, config, fields } = body
 
     // Check if form exists and belongs to user
     const existingForm = await prisma.form.findFirst({
-      where: { 
-        id: params.id,
+      where: {
+        id: id,
         user_id: user.id,
-        deleted_at: null 
+        deleted_at: null
       }
     })
 
@@ -119,7 +121,7 @@ export async function PUT(
 
     // Update the form
     const updatedForm = await prisma.form.update({
-      where: { id: params.id },
+      where: { id: id },
       data: {
         ...(title && { title }),
         ...(description !== undefined && { description }),
@@ -134,14 +136,14 @@ export async function PUT(
       await prisma.formFieldTranslation.deleteMany({
         where: {
           field: {
-            form_id: params.id
+            form_id: id
           }
         }
       })
       
       await prisma.formField.deleteMany({
         where: {
-          form_id: params.id
+          form_id: id
         }
       })
 
@@ -151,7 +153,7 @@ export async function PUT(
         
         const field = await prisma.formField.create({
           data: {
-            form_id: params.id,
+            form_id: id,
             index,
             type: fieldData.type,
             config: JSON.stringify(fieldConfig)
@@ -192,7 +194,7 @@ export async function PUT(
 // DELETE /api/forms/[id] - Delete a specific form (soft delete)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser()
@@ -200,12 +202,13 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     // Check if form exists and belongs to user
     const existingForm = await prisma.form.findFirst({
-      where: { 
-        id: params.id,
+      where: {
+        id: id,
         user_id: user.id,
-        deleted_at: null 
+        deleted_at: null
       }
     })
 
@@ -219,7 +222,7 @@ export async function DELETE(
       await tx.formFieldTranslation.updateMany({
         where: {
           field: {
-            form_id: params.id
+            form_id: id
           }
         },
         data: {
@@ -229,7 +232,7 @@ export async function DELETE(
 
       await tx.formField.updateMany({
         where: {
-          form_id: params.id
+          form_id: id
         },
         data: {
           deleted_at: new Date()
@@ -239,7 +242,7 @@ export async function DELETE(
       // Soft delete form responses
       await tx.formResponse.updateMany({
         where: {
-          form_id: params.id
+          form_id: id
         },
         data: {
           deleted_at: new Date()
@@ -248,7 +251,7 @@ export async function DELETE(
 
       // Soft delete the form
       await tx.form.update({
-        where: { id: params.id },
+        where: { id: id },
         data: {
           deleted_at: new Date()
         }

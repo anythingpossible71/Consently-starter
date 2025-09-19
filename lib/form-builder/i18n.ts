@@ -163,6 +163,7 @@ export const translations = {
     requiredField: "שדה חובה",
     showLabel: "הצגת תווית",
     options: "אפשרויות",
+    option: "אפשרות",
     addOption: "הוספת אפשרות",
     buttonText: "טקסט כפתור",
     buttonIcon: "אייקון כפתור",

@@ -3,12 +3,12 @@ import { notFound } from "next/navigation"
 import { FormViewer } from "@/components/form-builder/form-viewer"
 
 interface PublicFormPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
-  searchParams: {
+  }>
+  searchParams: Promise<{
     lang?: string
-  }
+  }>
 }
 
 export default async function PublicFormPage({ params, searchParams }: PublicFormPageProps) {

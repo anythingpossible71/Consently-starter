@@ -93,10 +93,13 @@ export function FileUploadField({
           validFiles.map(file => convertToBase64(file))
         );
         
-        const newFiles = allowMultiple 
-          ? [...currentFiles, ...base64Files]
+        // Since we're always converting to base64, ensure currentFiles are also strings
+        const currentStringFiles = currentFiles.filter((file): file is string => typeof file === 'string');
+
+        const newFiles = allowMultiple
+          ? [...currentStringFiles, ...base64Files]
           : base64Files;
-        
+
         onChange?.(newFiles);
       } catch (error) {
         console.error('Error processing files:', error);
@@ -148,10 +151,23 @@ export function FileUploadField({
 
   const removeFile = (index: number) => {
     if (disabled) return;
-    
+
     const currentFiles = Array.isArray(value) ? value : [];
     const newFiles = currentFiles.filter((_, i) => i !== index);
-    onChange?.(newFiles);
+
+    // Ensure type consistency - if all remaining files are strings, pass as string[]
+    const allStrings = newFiles.every(file => typeof file === 'string');
+    const allFiles = newFiles.every(file => file instanceof File);
+
+    if (allStrings) {
+      onChange?.(newFiles as string[]);
+    } else if (allFiles) {
+      onChange?.(newFiles as File[]);
+    } else {
+      // Mixed types - convert all to strings
+      const stringFiles = newFiles.map(file => typeof file === 'string' ? file : '');
+      onChange?.(stringFiles);
+    }
   };
 
   const getFileInfo = (fileData: string) => {
@@ -226,16 +242,18 @@ export function FileUploadField({
         <div className="space-y-2">
           <Label className="text-sm font-medium">Uploaded Files:</Label>
           {currentFiles.map((fileData, index) => {
-            const { mimeType, extension } = getFileInfo(fileData);
-            const isImage = mimeType.startsWith('image/');
-            
-            return (
-              <div key={index} className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg">
-                <div className="flex-shrink-0">
-                  {isImage ? (
-                    <img
-                      src={fileData}
-                      alt={`Uploaded file ${index + 1}`}
+            // Handle both string (base64) and File objects
+            if (typeof fileData === 'string') {
+              const { mimeType, extension } = getFileInfo(fileData);
+              const isImage = mimeType.startsWith('image/');
+
+              return (
+                <div key={index} className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg">
+                  <div className="flex-shrink-0">
+                    {isImage ? (
+                      <img
+                        src={fileData}
+                        alt={`Uploaded file ${index + 1}`}
                       className="w-10 h-10 object-cover rounded border"
                     />
                   ) : (
@@ -251,7 +269,7 @@ export function FileUploadField({
                   </p>
                   <p className="text-xs text-gray-500">{mimeType}</p>
                 </div>
-                
+
                 <div className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-green-500" />
                   {!disabled && (
@@ -266,7 +284,51 @@ export function FileUploadField({
                   )}
                 </div>
               </div>
-            );
+              );
+            } else {
+              // Handle File objects
+              const file = fileData as File;
+              const isImage = file.type.startsWith('image/');
+
+              return (
+                <div key={index} className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg">
+                  <div className="flex-shrink-0">
+                    {isImage ? (
+                      <img
+                        src={URL.createObjectURL(file)}
+                        alt={`Uploaded file ${index + 1}`}
+                        className="w-10 h-10 object-cover rounded border"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 bg-gray-100 rounded border flex items-center justify-center">
+                        <File className="w-5 h-5 text-gray-500" />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">
+                      {file.name}
+                    </p>
+                    <p className="text-xs text-gray-500">{file.type}</p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    {!disabled && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeFile(index)}
+                        className="h-8 w-8 p-0 text-gray-400 hover:text-red-500"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              );
+            }
           })}
         </div>
       )}

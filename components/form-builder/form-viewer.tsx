@@ -216,7 +216,7 @@ export function FormViewer({ form, language, supportedLanguages }: FormViewerPro
                   <div key={field.id || index} className="space-y-2">
                     <FieldRenderer
                       field={field}
-                      formConfig={form.config}
+                      formConfig={form.config as any}
                       currentLanguage={language}
                       value={formData[field.id]}
                       onChange={(value) => handleFieldChange(field.id, value)}

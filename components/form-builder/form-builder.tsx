@@ -446,6 +446,7 @@ export function FormBuilder({ onNavigateHome, formId, isPreview = false, onPrevi
             status: 'published',
             createdAt: new Date(),
             updatedAt: new Date(),
+            responseCount: 0,
             shareUrl: '',
             config: formConfig,
             fields: allFields

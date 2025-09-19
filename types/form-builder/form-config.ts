@@ -1,4 +1,4 @@
-import type { ThemeConfig } from "./theme-config"
+import type { ThemeConfigInterface } from "./theme-config"
 
 export interface LanguageTexts {
   [languageCode: string]: {
@@ -31,8 +31,9 @@ export interface FormConfig {
 
   // Theme & Styling
   selectedTheme: string
-  customTheme: ThemeConfig | null
+  customTheme: ThemeConfigInterface | null
   customCSS: string
+  applyCustomCSS: boolean
   showFrame: boolean
   showBackground: boolean
   backgroundColor: string
@@ -74,6 +75,7 @@ export const DEFAULT_FORM_CONFIG: FormConfig = {
   selectedTheme: "default",
   customTheme: null,
   customCSS: "",
+  applyCustomCSS: false,
   showFrame: true,
   showBackground: true,
   backgroundColor: "#ffffff",
