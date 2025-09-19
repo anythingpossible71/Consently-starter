@@ -35,7 +35,7 @@ export default function RootLayout({
         <SessionProvider>
           <ThemeProvider
             attribute="class"
-            defaultTheme="light"
+            defaultTheme="forest"
             enableSystem
             themes={["light", "dark", "system", "ocean", "forest", "midnight"]}
             disableTransitionOnChange
