@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import {
   Plus,
@@ -23,6 +24,7 @@ import {
 } from "lucide-react"
 import { getUITranslation, isRTL } from "@/utils/form-builder/translations"
 import type { FormData } from "@/types/form-builder/app-types"
+import { deleteForm } from "@/app/actions/forms"
 
 interface HomepageProps {
   currentLanguage: string
@@ -31,6 +33,7 @@ interface HomepageProps {
   onViewResponses: (formId: string) => void
   forms: FormData[]
   onRefreshForms?: () => void
+  onDeleteForm?: (formId: string) => void
 }
 
 // Available languages with flags
@@ -65,11 +68,14 @@ function QRCodeDisplay({ text, size = 120 }: { text: string; size?: number }) {
   )
 }
 
-export function Homepage({ currentLanguage, onCreateForm, onEditForm, onViewResponses, forms, onRefreshForms }: HomepageProps) {
+export function Homepage({ currentLanguage, onCreateForm, onEditForm, onViewResponses, forms, onRefreshForms, onDeleteForm }: HomepageProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedLanguages, setSelectedLanguages] = useState<Record<string, string>>({})
   const [qrModalOpen, setQrModalOpen] = useState(false)
   const [qrModalData, setQrModalData] = useState<{ url: string; title: string } | null>(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [formToDelete, setFormToDelete] = useState<{ id: string; title: string } | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
   const isRTLLanguage = isRTL(currentLanguage)
 
   const filteredForms = forms.filter(
@@ -99,8 +105,40 @@ export function Homepage({ currentLanguage, onCreateForm, onEditForm, onViewResp
   }
 
   const handleDeleteForm = (formId: string) => {
-    // Implement delete functionality
-    console.log("Delete form:", formId)
+    const form = forms.find(f => f.id === formId)
+    if (form) {
+      setFormToDelete({ id: formId, title: form.title })
+      setDeleteDialogOpen(true)
+    }
+  }
+
+  const confirmDelete = async () => {
+    if (!formToDelete) return
+    
+    setIsDeleting(true)
+    try {
+      const result = await deleteForm(formToDelete.id)
+      if (result.success) {
+        // Call the parent's delete handler if provided
+        if (onDeleteForm) {
+          onDeleteForm(formToDelete.id)
+        }
+        // Refresh forms list
+        if (onRefreshForms) {
+          onRefreshForms()
+        }
+        setDeleteDialogOpen(false)
+        setFormToDelete(null)
+      } else {
+        console.error('Failed to delete form:', result.message)
+        // You might want to show a toast notification here
+      }
+    } catch (error) {
+      console.error('Error deleting form:', error)
+      // You might want to show a toast notification here
+    } finally {
+      setIsDeleting(false)
+    }
   }
 
   const handleQRClick = (form: FormData, language: string) => {
@@ -369,6 +407,29 @@ export function Homepage({ currentLanguage, onCreateForm, onEditForm, onViewResp
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Form</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{formToDelete?.title}"? This action cannot be undone.
+              All form responses and data will be permanently deleted.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isDeleting ? "Deleting..." : "Delete Form"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

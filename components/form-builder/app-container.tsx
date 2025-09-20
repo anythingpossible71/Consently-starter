@@ -8,7 +8,7 @@ import { Homepage } from "@/components/form-builder/homepage"
 import { FormBuilder } from "@/components/form-builder/form-builder"
 import { FormResponses } from "@/components/form-builder/form-responses"
 import type { AppPage, User, FormData } from "@/types/form-builder/app-types"
-import { getForms, getForm } from "@/app/actions/forms"
+import { getForms, getForm, deleteForm } from "@/app/actions/forms"
 
 interface AppContainerProps {
   initialForms?: FormData[]
@@ -92,6 +92,20 @@ export function AppContainer({ initialForms = [], user: initialUser }: AppContai
     router.push('/forms?page=home')
   }
 
+  const handleDeleteForm = async (formId: string) => {
+    try {
+      const result = await deleteForm(formId)
+      if (result.success) {
+        // Remove the form from the local state
+        setForms(forms.filter(form => form.id !== formId))
+        // Also refresh from server to ensure consistency
+        await refreshForms()
+      }
+    } catch (error) {
+      console.error('Error deleting form:', error)
+    }
+  }
+
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -123,6 +137,7 @@ export function AppContainer({ initialForms = [], user: initialUser }: AppContai
               onViewResponses={handleViewResponses}
               forms={forms}
               onRefreshForms={refreshForms}
+              onDeleteForm={handleDeleteForm}
             />
           )}
 
