@@ -210,18 +210,14 @@ export function Homepage({ currentLanguage, onCreateForm, onEditForm, onViewResp
                           <Edit className="mr-2 h-4 w-4" />
                           {getUITranslation("edit", currentLanguage)}
                         </DropdownMenuItem>
-                        {form.shareUrl && (
-                          <>
-                            <DropdownMenuItem onClick={() => handleCopyLink(shareUrl)}>
-                              <Copy className="mr-2 h-4 w-4" />
-                              {getUITranslation("copyLink", currentLanguage)}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => window.open(shareUrl, "_blank")}>
-                              <ExternalLink className="mr-2 h-4 w-4" />
-                              {getUITranslation("openForm", currentLanguage)}
-                            </DropdownMenuItem>
-                          </>
-                        )}
+                        <DropdownMenuItem onClick={() => handleCopyLink(shareUrl)}>
+                          <Copy className="mr-2 h-4 w-4" />
+                          {getUITranslation("copyLink", currentLanguage)}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => window.open(shareUrl, "_blank")}>
+                          <ExternalLink className="mr-2 h-4 w-4" />
+                          {getUITranslation("openForm", currentLanguage)}
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => onViewResponses(form.id)}>
                           <BarChart3 className="mr-2 h-4 w-4" />
                           {getUITranslation("viewResponses", currentLanguage)}
