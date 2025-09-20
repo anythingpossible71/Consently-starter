@@ -1,9 +1,7 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useRef, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import type { FormField } from "@/types/form-builder/form-builder"
 import type { FormConfig } from "@/types/form-builder/form-config"
@@ -21,8 +19,6 @@ interface FormCanvasProps {
   onMoveFieldUp: (index: number) => void
   onMoveFieldDown: (index: number) => void
   formTitle: string
-  formDescription: string
-  onDescriptionChange: (description: string) => void
   currentLanguage: string
   formConfig?: FormConfig
   scrollPosition?: number
@@ -39,14 +35,11 @@ export function FormCanvas({
   onMoveFieldUp,
   onMoveFieldDown,
   formTitle,
-  formDescription,
-  onDescriptionChange,
   currentLanguage,
   formConfig,
   scrollPosition = 0,
   onScrollPositionChange,
 }: FormCanvasProps) {
-  const [isEditingDescription, setIsEditingDescription] = useState(false)
   const isRTLLanguage = isRTL(currentLanguage)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
 
@@ -77,26 +70,6 @@ export function FormCanvas({
         style={{ margin: "20px auto", padding: "20px 20px 62px 20px" }}
         dir={isRTLLanguage ? "rtl" : "ltr"}
       >
-        {/* Form Description */}
-        <div className="mb-8">
-          {isEditingDescription ? (
-            <Textarea
-              value={formDescription}
-              onChange={(e) => onDescriptionChange(e.target.value)}
-              onBlur={() => setIsEditingDescription(false)}
-              className="resize-none form-description-input"
-              placeholder="Add form description"
-              autoFocus
-            />
-          ) : (
-            <div
-              className="text-gray-600 cursor-pointer hover:bg-gray-50 px-3 py-2 rounded border border-gray-200 min-h-[40px] flex items-center"
-              onClick={() => setIsEditingDescription(true)}
-            >
-              {formDescription || "Add form description"}
-            </div>
-          )}
-        </div>
 
         {/* Form Fields - Filter out submit fields from display */}
         {(() => {

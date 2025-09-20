@@ -419,7 +419,6 @@ export function FormBuilder({ onNavigateHome, formId, isPreview = false, onPrevi
         <FormPreview
           fields={allFields}
           formTitle={formConfig.title || getFormTranslation("formElements", "untitledForm", formConfig.language)}
-          formDescription={formConfig.description}
           formConfig={formConfig}
           onExitPreview={() => {
             if (onPreviewToggle) {
@@ -492,8 +491,6 @@ export function FormBuilder({ onNavigateHome, formId, isPreview = false, onPrevi
               onMoveFieldUp={moveFieldUp}
               onMoveFieldDown={moveFieldDown}
               formTitle={formConfig.title}
-              formDescription={formConfig.description}
-              onDescriptionChange={(description) => setFormConfig((prev) => ({ ...prev, description }))}
               currentLanguage={formConfig.language}
               formConfig={formConfig}
               scrollPosition={scrollPosition}

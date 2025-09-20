@@ -9,7 +9,6 @@ import { FieldRenderer } from "./field-renderer"
 interface FormPreviewProps {
   fields: FormField[]
   formTitle: string
-  formDescription: string
   formConfig: FormConfig
   onExitPreview: () => void
 }
@@ -17,7 +16,6 @@ interface FormPreviewProps {
 export function FormPreview({
   fields,
   formTitle,
-  formDescription,
   formConfig,
   onExitPreview
 }: FormPreviewProps) {
@@ -33,8 +31,8 @@ export function FormPreview({
             </Button>
           </div>
           
-          {formDescription && (
-            <p className="text-gray-600 mb-6">{formDescription}</p>
+          {formConfig.description && (
+            <p className="text-gray-600 mb-6">{formConfig.description}</p>
           )}
 
           <div className="space-y-6 pb-16">
