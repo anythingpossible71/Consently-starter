@@ -37,8 +37,9 @@ export default function RootLayout({
             attribute="class"
             defaultTheme="forest"
             enableSystem={false}
-            themes={["light", "dark", "ocean", "forest", "midnight"]}
+            themes={["forest"]}
             disableTransitionOnChange
+            forcedTheme="forest"
           >
             {children}
             <DebugBubble />
