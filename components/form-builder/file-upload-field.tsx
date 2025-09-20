@@ -28,7 +28,9 @@ export function FileUploadField({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Parse accepted file types
-  const acceptedTypes = field.acceptedFileTypes?.split(',').map(type => type.trim()) || [];
+  const acceptedTypes = Array.isArray(field.acceptedFileTypes) 
+    ? field.acceptedFileTypes 
+    : field.acceptedFileTypes?.split(',').map(type => type.trim()) || [];
   const maxFileSize = (field.maxFileSize || 10) * 1024 * 1024; // Convert MB to bytes
   const maxFiles = field.maxFiles || 1;
   const allowMultiple = field.allowMultipleFiles || false;
@@ -182,52 +184,63 @@ export function FileUploadField({
   };
 
   const currentFiles = Array.isArray(value) ? value : [];
+  const hasFiles = currentFiles.length > 0;
 
   return (
     <div className="space-y-4">
-      {/* Upload Area */}
-      <div
-        className={cn(
-          "border-2 border-dashed rounded-lg p-6 text-center transition-colors",
-          dragActive ? "border-blue-400 bg-blue-50" : "border-gray-300 bg-gray-50",
-          error ? "border-red-300 bg-red-50" : "",
-          disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-gray-100"
-        )}
-        onDragEnter={handleDrag}
-        onDragLeave={handleDrag}
-        onDragOver={handleDrag}
-        onDrop={handleDrop}
-        onClick={() => !disabled && fileInputRef.current?.click()}
-      >
-        <Upload className={cn(
-          "w-8 h-8 mx-auto mb-2",
-          dragActive ? "text-blue-500" : "text-gray-400"
-        )} />
-        <p className="text-sm text-gray-600 mb-1">
-          {dragActive ? "Drop files here" : "Click to upload or drag and drop"}
-        </p>
-        <p className="text-xs text-gray-500">
-          {acceptedTypes.length > 0 
-            ? `${acceptedTypes.join(', ')} up to ${field.maxFileSize || 10}MB`
-            : `Files up to ${field.maxFileSize || 10}MB`
-          }
-        </p>
-        {maxFiles > 1 && (
-          <p className="text-xs text-gray-500">
-            Maximum {maxFiles} files
+      {/* Upload Area - Only show when no files are uploaded */}
+      {!hasFiles && (
+        <div
+          className={cn(
+            "border-2 border-dashed rounded-lg p-6 text-center transition-colors",
+            dragActive ? "border-blue-400 bg-blue-50" : "border-gray-300 bg-gray-50",
+            error ? "border-red-300 bg-red-50" : "",
+            disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-gray-100"
+          )}
+          onDragEnter={handleDrag}
+          onDragLeave={handleDrag}
+          onDragOver={handleDrag}
+          onDrop={handleDrop}
+          onClick={() => !disabled && fileInputRef.current?.click()}
+        >
+          <Upload className={cn(
+            "w-8 h-8 mx-auto mb-2",
+            dragActive ? "text-blue-500" : "text-gray-400"
+          )} />
+          <p className="text-sm text-gray-600 mb-1">
+            {dragActive ? "Drop files here" : "Click to upload or drag and drop"}
           </p>
-        )}
-        
-        <Input
-          ref={fileInputRef}
-          type="file"
-          multiple={allowMultiple}
-          accept={acceptedTypes.join(',')}
-          onChange={handleFileInput}
-          className="hidden"
-          disabled={disabled}
-        />
-      </div>
+          <p className="text-xs text-gray-500">
+            {acceptedTypes.length > 0 
+              ? `${acceptedTypes.join(', ')} up to ${field.maxFileSize || 10}MB`
+              : `Files up to ${field.maxFileSize || 10}MB`
+            }
+          </p>
+          {maxFiles > 1 && (
+            <p className="text-xs text-gray-500">
+              Maximum {maxFiles} files
+            </p>
+          )}
+          
+          <Input
+            ref={fileInputRef}
+            type="file"
+            multiple={allowMultiple}
+            accept={acceptedTypes.join(',')}
+            onChange={handleFileInput}
+            className="hidden"
+            disabled={disabled}
+          />
+        </div>
+      )}
+
+      {/* Supported File Types Note - Only show when no files are uploaded */}
+      {!hasFiles && acceptedTypes.length > 0 && (
+        <div className="text-xs text-gray-600 text-center bg-gray-50 rounded-lg p-3 border">
+          <p className="font-medium mb-1 text-gray-700">Supported file types:</p>
+          <p className="text-gray-600">{acceptedTypes.join(', ')}</p>
+        </div>
+      )}
 
       {/* Upload Progress */}
       {uploading && (
@@ -240,7 +253,6 @@ export function FileUploadField({
       {/* File List */}
       {currentFiles.length > 0 && (
         <div className="space-y-2">
-          <Label className="text-sm font-medium">Uploaded Files:</Label>
           {currentFiles.map((fileData, index) => {
             // Handle both string (base64) and File objects
             if (typeof fileData === 'string') {
