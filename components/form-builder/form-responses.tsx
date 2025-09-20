@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Download, Eye, Calendar, User, Globe } from "lucide-react"
+import { Download, Eye, Calendar, User, Globe, File } from "lucide-react"
 import type { FormData } from "@/types/form-builder/app-types"
 
 interface FormResponse {
@@ -115,7 +115,7 @@ export function FormResponses({ form, onClose }: FormResponsesProps) {
     return value.startsWith('data:image/') && value.includes('base64,')
   }
 
-  // Helper function to render field value (text or image)
+  // Helper function to render field value (text, image, or files)
   const renderFieldValue = (value: any) => {
     if (isBase64Image(value)) {
       return (
@@ -123,13 +123,102 @@ export function FormResponses({ form, onClose }: FormResponsesProps) {
           <img 
             src={value} 
             alt="Signature" 
-            className="max-w-full h-auto border border-gray-200 rounded"
+            className="max-w-full h-auto border border-gray-200 rounded cursor-pointer hover:opacity-80 transition-opacity"
             style={{ maxHeight: '200px' }}
+            onClick={() => openBase64File(value)}
+            title="Click to open in new tab"
           />
         </div>
       )
     }
+    
+    // Handle array of files (for file-upload field)
+    if (Array.isArray(value) && value.every(item => typeof item === 'string' && isBase64Image(item))) {
+      return (
+        <div className="mt-2 space-y-2">
+          {value.map((fileData, index) => {
+            const { mimeType, extension } = getFileInfo(fileData)
+            const isImage = mimeType.startsWith('image/')
+            
+            return (
+              <div key={index} className="flex items-center gap-3 p-2 border border-gray-200 rounded-lg hover:bg-gray-50">
+                <div className="flex-shrink-0">
+                  {isImage ? (
+                    <img
+                      src={fileData}
+                      alt={`Uploaded file ${index + 1}`}
+                      className="w-8 h-8 object-cover rounded border cursor-pointer hover:opacity-80 transition-opacity"
+                      onClick={() => openBase64File(fileData)}
+                      title="Click to open in new tab"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 bg-gray-100 rounded border flex items-center justify-center">
+                      <File className="w-4 h-4 text-gray-500" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <button
+                    onClick={() => {
+                      if (isImage) {
+                        openBase64File(fileData)
+                      } else {
+                        downloadBase64File(fileData, `File ${index + 1}.${extension}`)
+                      }
+                    }}
+                    className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline cursor-pointer bg-transparent border-none p-0"
+                    title={isImage ? "Click to open in new tab" : "Click to download"}
+                  >
+                    File {index + 1}.{extension}
+                  </button>
+                  <p className="text-xs text-gray-500">{mimeType}</p>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )
+    }
+    
     return <p className="text-sm text-gray-600 truncate">{String(value)}</p>
+  }
+
+  // Helper function to get file info from base64 data
+  const getFileInfo = (fileData: string) => {
+    const match = fileData.match(/data:([^;]+);base64,(.+)/)
+    if (match) {
+      const mimeType = match[1]
+      const extension = mimeType.split('/')[1] || 'file'
+      return { mimeType, extension }
+    }
+    return { mimeType: 'unknown', extension: 'file' }
+  }
+
+  // Helper function to download base64 file
+  const downloadBase64File = (fileData: string, filename: string) => {
+    const link = document.createElement('a')
+    link.href = fileData
+    link.download = filename
+    link.target = '_blank'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  // Helper function to open base64 file in new tab
+  const openBase64File = (fileData: string) => {
+    const newWindow = window.open()
+    if (newWindow) {
+      newWindow.document.write(`
+        <html>
+          <head><title>File Preview</title></head>
+          <body style="margin:0; padding:20px; text-align:center;">
+            <img src="${fileData}" style="max-width:100%; max-height:100vh; object-fit:contain;" />
+          </body>
+        </html>
+      `)
+      newWindow.document.close()
+    }
   }
 
   if (isLoading) {
@@ -282,14 +371,61 @@ export function FormResponses({ form, onClose }: FormResponsesProps) {
                     <h4 className="font-medium text-gray-900 mb-2">
                       {getFieldLabel(fieldId)}
                     </h4>
-                    {isBase64Image(value) ? (
+                    {isBase64Image(value) || (Array.isArray(value) && value.every(item => typeof item === 'string' && isBase64Image(item))) ? (
                       <div className="mt-2">
-                        <img 
-                          src={value} 
-                          alt="Signature" 
-                          className="max-w-full h-auto border border-gray-200 rounded"
-                          style={{ maxHeight: '300px' }}
-                        />
+                        {Array.isArray(value) ? (
+                          <div className="space-y-3">
+                            {value.map((fileData, index) => {
+                              const { mimeType, extension } = getFileInfo(fileData)
+                              const isImage = mimeType.startsWith('image/')
+                              
+                              return (
+                                <div key={index} className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
+                                  <div className="flex-shrink-0">
+                                    {isImage ? (
+                                      <img
+                                        src={fileData}
+                                        alt={`Uploaded file ${index + 1}`}
+                                        className="w-12 h-12 object-cover rounded border cursor-pointer hover:opacity-80 transition-opacity"
+                                        onClick={() => openBase64File(fileData)}
+                                        title="Click to open in new tab"
+                                      />
+                                    ) : (
+                                      <div className="w-12 h-12 bg-gray-100 rounded border flex items-center justify-center">
+                                        <File className="w-6 h-6 text-gray-500" />
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <button
+                                      onClick={() => {
+                                        if (isImage) {
+                                          openBase64File(fileData)
+                                        } else {
+                                          downloadBase64File(fileData, `File ${index + 1}.${extension}`)
+                                        }
+                                      }}
+                                      className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline cursor-pointer bg-transparent border-none p-0"
+                                      title={isImage ? "Click to open in new tab" : "Click to download"}
+                                    >
+                                      File {index + 1}.{extension}
+                                    </button>
+                                    <p className="text-xs text-gray-500">{mimeType}</p>
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        ) : (
+                          <img 
+                            src={value} 
+                            alt="Signature" 
+                            className="max-w-full h-auto border border-gray-200 rounded cursor-pointer hover:opacity-80 transition-opacity"
+                            style={{ maxHeight: '300px' }}
+                            onClick={() => openBase64File(value)}
+                            title="Click to open in new tab"
+                          />
+                        )}
                       </div>
                     ) : (
                       <p className="text-gray-700 whitespace-pre-wrap">
