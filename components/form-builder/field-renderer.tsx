@@ -60,7 +60,7 @@ export function FieldRenderer({ field, formConfig, currentLanguage = "en", value
             defaultCountry={field.phoneSettings?.defaultCountryCode as any || "US"}
             international={field.phoneSettings?.format === "international"}
             countrySelectProps={{
-              disabled: !field.phoneSettings?.showCountrySelector
+              disabled: !field.phoneSettings?.showCountrySelector || field.phoneSettings?.format === "national"
             }}
           />
         )
@@ -84,19 +84,20 @@ export function FieldRenderer({ field, formConfig, currentLanguage = "en", value
             value={value || ""} 
             onValueChange={(val) => onChange?.(val)}
             disabled={!onChange}
-            className={isRTLLanguage ? "space-y-3" : "space-y-3"}
           >
-            {field.options?.map((option, index) => (
-              <div key={index} className={`flex items-center gap-2 ${isRTLLanguage ? "flex-row-reverse" : "flex-row"}`}>
-                <RadioGroupItem value={option} id={`${field.id}-${index}`} />
-                <Label
-                  htmlFor={`${field.id}-${index}`}
-                  className={`${isRTLLanguage ? "text-right mr-2" : "text-left ml-2"} flex-1`}
-                >
-                  {option}
-                </Label>
-              </div>
-            ))}
+            <div className="space-y-3">
+              {field.options?.map((option, index) => (
+                <div key={index} className={`flex items-center gap-2 ${isRTLLanguage ? "flex-row-reverse" : "flex-row"}`}>
+                  <RadioGroupItem value={option} id={`${field.id}-${index}`} />
+                  <Label
+                    htmlFor={`${field.id}-${index}`}
+                    className={`${isRTLLanguage ? "text-right mr-2" : "text-left ml-2"} flex-1`}
+                  >
+                    {option}
+                  </Label>
+                </div>
+              ))}
+            </div>
           </RadioGroup>
         )
 
@@ -193,6 +194,7 @@ export function FieldRenderer({ field, formConfig, currentLanguage = "en", value
                     />
                   </div>
                   <Button
+                    type="button"
                     variant="outline"
                     className="border-blue-300 text-blue-700 hover:bg-blue-100 bg-transparent"
                     onClick={() => setIsSignatureModalOpen(true)}
@@ -207,6 +209,7 @@ export function FieldRenderer({ field, formConfig, currentLanguage = "en", value
                   <h3 className="text-lg font-medium text-blue-900 mb-2">Electronic Signature</h3>
                   <p className="text-sm text-blue-700 mb-4">Click to sign with your finger, mouse, or upload signature</p>
                   <Button
+                    type="button"
                     variant="outline"
                     className="border-blue-300 text-blue-700 hover:bg-blue-100 bg-transparent"
                     onClick={() => setIsSignatureModalOpen(true)}
@@ -290,7 +293,7 @@ export function FieldRenderer({ field, formConfig, currentLanguage = "en", value
     <div className="form-field">
       {field.showLabel && field.type !== "heading" && field.type !== "text-block" && field.type !== "submit" && (
         <Label
-          className={`form-label ${isRTLLanguage ? "text-right" : "text-left"}`}
+          className={`text-lg font-semibold text-gray-900 mb-2 block ${isRTLLanguage ? "text-right" : "text-left"}`}
           dir={isRTLLanguage ? "rtl" : "ltr"}
         >
           {field.label}

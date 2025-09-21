@@ -58,12 +58,12 @@ export default async function FormResponsePage({ params }: FormResponsePageProps
     const transformedForm = {
       id: form.id,
       title: form.title,
-      description: form.description,
-      status: form.status,
+      description: form.description || undefined,
+      status: form.status as "draft" | "published",
       createdAt: new Date(form.created_at),
       updatedAt: new Date(form.updated_at),
       responseCount: 0, // Not needed for this view
-      shareUrl: form.share_url,
+      shareUrl: form.share_url || undefined,
       config: JSON.parse(form.config),
       fields: form.fields.map(field => {
         const config = JSON.parse(field.config)

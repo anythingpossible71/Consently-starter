@@ -1017,7 +1017,7 @@ export function PropertiesPanel({
                           onUpdateField(selectedField.id, {
                             phoneSettings: {
                               defaultCountryCode: "US",
-                              showCountrySelector: true,
+                              showCountrySelector: value === "international",
                               enableValidation: true,
                               validationMessage: "Please enter a valid phone number",
                               ...selectedField.phoneSettings,
@@ -1040,6 +1040,7 @@ export function PropertiesPanel({
                       <Label className="text-xs font-medium text-gray-700">Show Country Selector</Label>
                       <Switch
                         checked={selectedField.phoneSettings?.showCountrySelector !== false}
+                        disabled={selectedField.phoneSettings?.format === "national"}
                         onCheckedChange={(checked) =>
                           onUpdateField(selectedField.id, {
                             phoneSettings: {
@@ -1055,7 +1056,7 @@ export function PropertiesPanel({
                       />
                     </div>
 
-                    {selectedField.phoneSettings?.showCountrySelector !== false && (
+                    {selectedField.phoneSettings?.showCountrySelector !== false && selectedField.phoneSettings?.format !== "national" && (
                       <div>
                         <Label className="text-xs font-medium text-gray-700 mb-2 block">Default Country</Label>
                         <CountrySelector

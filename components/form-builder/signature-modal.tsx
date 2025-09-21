@@ -161,7 +161,7 @@ export function SignatureModal({
     } else if (activeTab === "upload" && uploadPreview) {
       onSave(uploadPreview);
     }
-    onClose();
+    // Don't call onClose() here - let the parent component handle modal closing
   };
 
   const isSignatureEmpty = () => {
