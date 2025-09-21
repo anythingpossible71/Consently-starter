@@ -1036,49 +1036,45 @@ export function PropertiesPanel({
                       </Select>
                     </div>
 
-                    {selectedField.phoneSettings?.format === "international" && (
-                      <>
-                        <div className="flex items-center justify-between">
-                          <Label className="text-xs font-medium text-gray-700">Show Country Selector</Label>
-                          <Switch
-                            checked={selectedField.phoneSettings?.showCountrySelector !== false}
-                            onCheckedChange={(checked) =>
-                              onUpdateField(selectedField.id, {
-                                phoneSettings: {
-                                  format: "international",
-                                  defaultCountryCode: "US",
-                                  enableValidation: true,
-                                  validationMessage: "Please enter a valid phone number",
-                                  ...selectedField.phoneSettings,
-                                  showCountrySelector: checked,
-                                },
-                              })
-                            }
-                          />
-                        </div>
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-medium text-gray-700">Show Country Selector</Label>
+                      <Switch
+                        checked={selectedField.phoneSettings?.showCountrySelector !== false}
+                        onCheckedChange={(checked) =>
+                          onUpdateField(selectedField.id, {
+                            phoneSettings: {
+                              format: selectedField.phoneSettings?.format || "international",
+                              defaultCountryCode: "US",
+                              enableValidation: true,
+                              validationMessage: "Please enter a valid phone number",
+                              ...selectedField.phoneSettings,
+                              showCountrySelector: checked,
+                            },
+                          })
+                        }
+                      />
+                    </div>
 
-                        {selectedField.phoneSettings?.showCountrySelector !== false && (
-                          <div>
-                            <Label className="text-xs font-medium text-gray-700 mb-2 block">Default Country</Label>
-                            <CountrySelector
-                              selectedCountry={selectedField.phoneSettings?.defaultCountryCode || "US"}
-                              onCountryChange={(country) =>
-                                onUpdateField(selectedField.id, {
-                                  phoneSettings: {
-                                    format: "international",
-                                    showCountrySelector: true,
-                                    enableValidation: true,
-                                    validationMessage: "Please enter a valid phone number",
-                                    ...selectedField.phoneSettings,
-                                    defaultCountryCode: country,
-                                  },
-                                })
-                              }
-                              showLabel={false}
-                            />
-                          </div>
-                        )}
-                      </>
+                    {selectedField.phoneSettings?.showCountrySelector !== false && (
+                      <div>
+                        <Label className="text-xs font-medium text-gray-700 mb-2 block">Default Country</Label>
+                        <CountrySelector
+                          selectedCountry={selectedField.phoneSettings?.defaultCountryCode || "US"}
+                          onCountryChange={(country) =>
+                            onUpdateField(selectedField.id, {
+                              phoneSettings: {
+                                format: selectedField.phoneSettings?.format || "international",
+                                showCountrySelector: true,
+                                enableValidation: true,
+                                validationMessage: "Please enter a valid phone number",
+                                ...selectedField.phoneSettings,
+                                defaultCountryCode: country,
+                              },
+                            })
+                          }
+                          showLabel={false}
+                        />
+                      </div>
                     )}
 
                     <div className="flex items-center justify-between">
@@ -1088,7 +1084,7 @@ export function PropertiesPanel({
                         onCheckedChange={(checked) =>
                           onUpdateField(selectedField.id, {
                             phoneSettings: {
-                              format: "international",
+                              format: selectedField.phoneSettings?.format || "international",
                               defaultCountryCode: "US",
                               showCountrySelector: true,
                               validationMessage: "Please enter a valid phone number",
@@ -1108,7 +1104,7 @@ export function PropertiesPanel({
                           onChange={(e) =>
                             onUpdateField(selectedField.id, {
                               phoneSettings: {
-                                format: "international",
+                                format: selectedField.phoneSettings?.format || "international",
                                 defaultCountryCode: "US",
                                 showCountrySelector: true,
                                 enableValidation: true,

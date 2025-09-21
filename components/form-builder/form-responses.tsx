@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Download, Eye, Calendar, User, Globe, File } from "lucide-react"
 import type { FormData } from "@/types/form-builder/app-types"
+import { FormResponsesTable } from "./form-responses-table"
 
 interface FormResponse {
   id: string
@@ -25,6 +26,10 @@ interface FormResponsesProps {
 }
 
 export function FormResponses({ form, onClose }: FormResponsesProps) {
+  return <FormResponsesTable form={form} onClose={onClose} />
+}
+
+function FormResponsesOld({ form, onClose }: FormResponsesProps) {
   const [responses, setResponses] = useState<FormResponse[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)

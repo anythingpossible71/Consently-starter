@@ -38,7 +38,7 @@ export interface FormField {
   // Phone specific properties
   phoneSettings?: {
     format: "national" | "international"
-    defaultCountryCode: string
+    defaultCountryCode: string // Country code like "US", "GB", "CA", etc.
     showCountrySelector: boolean
     enableValidation: boolean
     validationMessage: string

@@ -24,6 +24,7 @@ model User {
   sessions       Session[]
   profile        UserProfile?
   roles          UserRole[]
+  viewSettings   FormViewSettings[]
 
   @@index([email])
   @@index([deleted_at])
@@ -215,6 +216,7 @@ model Form {
   user           User           @relation(fields: [user_id], references: [id])
   fields         FormField[]
   responses      FormResponse[]
+  viewSettings   FormViewSettings?
 
   @@index([user_id])
   @@index([status])
@@ -269,5 +271,23 @@ model FormResponse {
 
   @@index([form_id])
   @@index([created_at])
+  @@index([deleted_at])
+}
+
+model FormViewSettings {
+  id                String    @id @default("")
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
+  deleted_at        DateTime?
+  form_id           String    @unique
+  user_id           String
+  visible_fields    String    // JSON array of field IDs that should be visible in table view
+  table_sort_field  String?   // Field ID to sort by
+  table_sort_order  String?   // 'asc' or 'desc'
+  form              Form      @relation(fields: [form_id], references: [id])
+  user              User      @relation(fields: [user_id], references: [id])
+
+  @@index([form_id])
+  @@index([user_id])
   @@index([deleted_at])
 }

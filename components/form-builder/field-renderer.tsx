@@ -11,7 +11,7 @@ import type { FormField } from "@/types/form-builder/form-builder"
 import type { FormConfig } from "@/types/form-builder/form-config"
 import { PenTool, Upload, Calendar, Send, Check, ArrowRight } from "lucide-react"
 import { getTranslation, isRTL, getDefaultPlaceholder } from "@/utils/form-builder/translations"
-import { PhoneInput } from "./phone-input"
+import { PhoneInput } from "@/components/ui/phone-input"
 import { SignatureModal } from "./signature-modal"
 import { FileUploadField } from "./file-upload-field"
 
@@ -54,10 +54,14 @@ export function FieldRenderer({ field, formConfig, currentLanguage = "en", value
           <PhoneInput
             value={value || ""}
             onChange={(val) => onChange?.(val)}
-            field={field}
             placeholder={field.placeholder || getDefaultPlaceholder("phone", config.language)}
             disabled={!onChange}
             className="form-input"
+            defaultCountry={field.phoneSettings?.defaultCountryCode as any || "US"}
+            international={field.phoneSettings?.format === "international"}
+            countrySelectProps={{
+              disabled: !field.phoneSettings?.showCountrySelector
+            }}
           />
         )
 

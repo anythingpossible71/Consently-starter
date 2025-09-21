@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useImperativeHandle, forwardRef } from "react"
 import { FormEditorHeader } from "@/components/form-builder/form-editor-header"
 import { ToolLibrary } from "@/components/form-builder/tool-library"
 import { FormCanvas } from "@/components/form-builder/form-canvas"
@@ -19,9 +19,10 @@ import { saveForm, getForm } from "@/app/actions/forms"
 import { Button } from "@/components/ui/button"
 import { Save, Loader2 } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 
 interface FormBuilderProps {
-  onNavigateHome?: () => void
+  onNavigateHome?: (bypassUnsavedCheck?: boolean) => void
   formId?: string // Optional form ID for editing existing forms
   isPreview?: boolean // Preview state from URL
   onPreviewToggle?: (preview: boolean) => void // Callback to update URL
@@ -29,7 +30,12 @@ interface FormBuilderProps {
   onResponsesToggle?: (responses: boolean) => void // Callback to update URL
 }
 
-export function FormBuilder({ onNavigateHome, formId, isPreview = false, onPreviewToggle, isResponses = false, onResponsesToggle }: FormBuilderProps) {
+export interface FormBuilderRef {
+  hasUnsavedChanges: boolean
+  showExitConfirmation: (onConfirm: () => void) => void
+}
+
+export const FormBuilder = forwardRef<FormBuilderRef, FormBuilderProps>(({ onNavigateHome, formId, isPreview = false, onPreviewToggle, isResponses = false, onResponsesToggle }, ref) => {
   const [fields, setFields] = useState<FormField[]>([])
   const [selectedField, setSelectedField] = useState<FormField | null>(null)
   const [formConfig, setFormConfig] = useState<FormConfig>(DEFAULT_FORM_CONFIG)
@@ -40,6 +46,67 @@ export function FormBuilder({ onNavigateHome, formId, isPreview = false, onPrevi
   const [scrollPosition, setScrollPosition] = useState(0)
   const [isPublishing, setIsPublishing] = useState(false)
   const [allFields, setAllFields] = useState<FormField[]>([]) // All fields including submit
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const [showExitDialog, setShowExitDialog] = useState(false)
+  const [pendingNavigation, setPendingNavigation] = useState<(() => void) | null>(null)
+
+  // Expose unsaved changes state to parent component
+  useImperativeHandle(ref, () => ({
+    hasUnsavedChanges,
+    showExitConfirmation: (onConfirm: () => void) => {
+      if (hasUnsavedChanges) {
+        setPendingNavigation(() => onConfirm)
+        setShowExitDialog(true)
+      } else {
+        onConfirm()
+      }
+    }
+  }), [hasUnsavedChanges])
+
+  // Mark form as having unsaved changes
+  const markAsChanged = () => {
+    setHasUnsavedChanges(true)
+  }
+
+  // Handle navigation with unsaved changes check
+  const handleNavigation = (navigationFn: () => void) => {
+    if (hasUnsavedChanges) {
+      setPendingNavigation(() => navigationFn)
+      setShowExitDialog(true)
+    } else {
+      navigationFn()
+    }
+  }
+
+  // Confirm exit and discard changes
+  const confirmExit = () => {
+    setHasUnsavedChanges(false)
+    setShowExitDialog(false)
+    if (pendingNavigation) {
+      pendingNavigation()
+      setPendingNavigation(null)
+    }
+  }
+
+  // Cancel exit and stay on page
+  const cancelExit = () => {
+    setShowExitDialog(false)
+    setPendingNavigation(null)
+  }
+
+  // Handle browser navigation (back button, refresh, etc.)
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault()
+        e.returnValue = 'You have unsaved changes. Are you sure you want to leave?'
+        return e.returnValue
+      }
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [hasUnsavedChanges])
 
   // Load existing form data if formId is provided, otherwise use sample data
   useEffect(() => {
@@ -55,6 +122,8 @@ export function FormBuilder({ onNavigateHome, formId, isPreview = false, onPrevi
             // Filter out submit fields when loading for editing (they're handled separately)
             const editableFields = result.form.fields.filter(field => field.type !== 'submit')
             setFields(editableFields)
+            // Clear unsaved changes flag when loading existing form
+            setHasUnsavedChanges(false)
           } else {
             toast({
               title: "Error",
@@ -179,6 +248,7 @@ export function FormBuilder({ onNavigateHome, formId, isPreview = false, onPrevi
 
     setSelectedField(newField)
     setIsSettingsActive(true)
+    markAsChanged()
   }
 
   const updateField = (fieldId: string, updates: Partial<FormField>) => {
@@ -186,6 +256,7 @@ export function FormBuilder({ onNavigateHome, formId, isPreview = false, onPrevi
     if (selectedField?.id === fieldId) {
       setSelectedField({ ...selectedField, ...updates })
     }
+    markAsChanged()
   }
 
   const removeField = (fieldId: string) => {
@@ -199,6 +270,7 @@ export function FormBuilder({ onNavigateHome, formId, isPreview = false, onPrevi
     if (selectedField?.id === fieldId) {
       setSelectedField(null)
     }
+    markAsChanged()
   }
 
   const moveField = (dragIndex: number, hoverIndex: number) => {
@@ -219,6 +291,7 @@ export function FormBuilder({ onNavigateHome, formId, isPreview = false, onPrevi
     newFields.splice(dragIndex, 1)
     newFields.splice(hoverIndex, 0, draggedField)
     setFields(newFields)
+    markAsChanged()
   }
 
   const moveFieldUp = (index: number) => {
@@ -234,6 +307,7 @@ export function FormBuilder({ onNavigateHome, formId, isPreview = false, onPrevi
       newFields.splice(index, 1)
       newFields.splice(index - 1, 0, field)
       setFields(newFields)
+      markAsChanged()
     }
   }
 
@@ -256,6 +330,7 @@ export function FormBuilder({ onNavigateHome, formId, isPreview = false, onPrevi
       newFields.splice(index, 1)
       newFields.splice(index + 1, 0, field)
       setFields(newFields)
+      markAsChanged()
     }
   }
 
@@ -335,6 +410,7 @@ export function FormBuilder({ onNavigateHome, formId, isPreview = false, onPrevi
 
   const handleFormConfigChange = (updates: Partial<FormConfig>) => {
     setFormConfig((prev) => ({ ...prev, ...updates }))
+    markAsChanged()
 
     // Auto-apply theme changes
     if (updates.selectedTheme || updates.customTheme || updates.customCSS || updates.applyCustomCSS !== undefined) {
@@ -348,7 +424,7 @@ export function FormBuilder({ onNavigateHome, formId, isPreview = false, onPrevi
   const handleBackToHome = () => {
     // Call the parent navigation function if provided
     if (onNavigateHome) {
-      onNavigateHome()
+      handleNavigation(onNavigateHome)
     }
   }
 
@@ -390,9 +466,11 @@ export function FormBuilder({ onNavigateHome, formId, isPreview = false, onPrevi
           title: "Success",
           description: result.message
         })
-        // Navigate back to forms list
+        // Clear unsaved changes flag since form was saved
+        setHasUnsavedChanges(false)
+        // Navigate back to forms list (bypass unsaved changes check since form is saved)
         if (onNavigateHome) {
-          onNavigateHome()
+          onNavigateHome(true) // Pass true to bypass unsaved changes check
         }
       } else {
         toast({
@@ -467,7 +545,10 @@ export function FormBuilder({ onNavigateHome, formId, isPreview = false, onPrevi
       <div className="flex flex-col h-screen">
         <FormEditorHeader
           formTitle={formConfig.title}
-          onTitleChange={(title) => setFormConfig((prev) => ({ ...prev, title }))}
+          onTitleChange={(title) => {
+            setFormConfig((prev) => ({ ...prev, title }))
+            markAsChanged()
+          }}
           onSettingsToggle={handleSettingsToggle}
           isSettingsActive={isSettingsActive && !selectedField}
           onPreviewToggle={handlePreviewToggle}
@@ -525,10 +606,29 @@ export function FormBuilder({ onNavigateHome, formId, isPreview = false, onPrevi
           currentLanguage={formConfig.language}
           newLanguage={pendingLanguage}
         />
+        
+        {/* Unsaved Changes Confirmation Dialog */}
+        <AlertDialog open={showExitDialog} onOpenChange={setShowExitDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Unsaved Changes</AlertDialogTitle>
+              <AlertDialogDescription>
+                You have unsaved changes to your form. Are you sure you want to leave without saving? 
+                Your changes will be lost.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={cancelExit}>Stay on Page</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmExit} className="bg-red-600 hover:bg-red-700">
+                Leave Without Saving
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </DndProvider>
   )
-}
+})
 
 function getFieldTranslationKey(fieldType: FieldType): string {
   const keys = {

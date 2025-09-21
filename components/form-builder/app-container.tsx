@@ -1,11 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { AppHeader } from "@/components/form-builder/app-header"
 import { SidebarMenu } from "@/components/form-builder/sidebar-menu"
 import { Homepage } from "@/components/form-builder/homepage"
-import { FormBuilder } from "@/components/form-builder/form-builder"
+import { FormBuilder, FormBuilderRef } from "@/components/form-builder/form-builder"
 import { FormResponses } from "@/components/form-builder/form-responses"
 import type { AppPage, User, FormData } from "@/types/form-builder/app-types"
 import { getForms, getForm, deleteForm } from "@/app/actions/forms"
@@ -23,6 +23,7 @@ export function AppContainer({ initialForms = [], user: initialUser }: AppContai
   const [isLoadingForms, setIsLoadingForms] = useState(false)
   const [currentForm, setCurrentForm] = useState<FormData | null>(null)
   const [isLoadingForm, setIsLoadingForm] = useState(false)
+  const formBuilderRef = useRef<FormBuilderRef>(null)
 
   // Function to refresh forms data
   const refreshForms = async () => {
@@ -51,13 +52,26 @@ export function AppContainer({ initialForms = [], user: initialUser }: AppContai
   // Forms are now passed as props from server component
 
   const handleNavigate = (page: AppPage, formId?: string) => {
-    const params = new URLSearchParams()
-    params.set('page', page)
-    if (formId) {
-      params.set('formId', formId)
+    // Check if we're navigating away from the editor with unsaved changes
+    if (currentPage === 'editor' && page !== 'editor' && formBuilderRef.current) {
+      formBuilderRef.current.showExitConfirmation(() => {
+        const params = new URLSearchParams()
+        params.set('page', page)
+        if (formId) {
+          params.set('formId', formId)
+        }
+        router.push(`/forms?${params.toString()}`)
+        setIsSidebarOpen(false)
+      })
+    } else {
+      const params = new URLSearchParams()
+      params.set('page', page)
+      if (formId) {
+        params.set('formId', formId)
+      }
+      router.push(`/forms?${params.toString()}`)
+      setIsSidebarOpen(false)
     }
-    router.push(`/forms?${params.toString()}`)
-    setIsSidebarOpen(false)
   }
 
   const handleLogout = () => {
@@ -88,8 +102,15 @@ export function AppContainer({ initialForms = [], user: initialUser }: AppContai
     }
   }
 
-  const handleNavigateHome = () => {
-    router.push('/forms?page=home')
+  const handleNavigateHome = (bypassUnsavedCheck = false) => {
+    // Check if we're navigating away from the editor with unsaved changes
+    if (currentPage === 'editor' && formBuilderRef.current && !bypassUnsavedCheck) {
+      formBuilderRef.current.showExitConfirmation(() => {
+        router.push('/forms?page=home')
+      })
+    } else {
+      router.push('/forms?page=home')
+    }
   }
 
   const handleDeleteForm = async (formId: string) => {
@@ -144,8 +165,9 @@ export function AppContainer({ initialForms = [], user: initialUser }: AppContai
           {currentPage === "editor" && (
             <div className="h-full">
               <FormBuilder 
-                onNavigateHome={() => {
-                  handleNavigateHome()
+                ref={formBuilderRef}
+                onNavigateHome={(bypassUnsavedCheck = false) => {
+                  handleNavigateHome(bypassUnsavedCheck)
                   refreshForms() // Refresh forms when navigating back
                 }} 
                 formId={currentFormId || undefined}
