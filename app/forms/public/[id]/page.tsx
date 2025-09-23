@@ -26,7 +26,9 @@ export default async function PublicFormPage({ params, searchParams }: PublicFor
   const form = result.form
   
   // Check if the requested language is supported
-  const supportedLanguages = form.config.supportedLanguages || ['en']
+  const supportedLanguages = Array.isArray(form.config.supportedLanguages) 
+    ? form.config.supportedLanguages 
+    : ['en']
   if (!supportedLanguages.includes(language)) {
     // Redirect to main language if requested language is not supported
     return (

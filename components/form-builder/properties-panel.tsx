@@ -23,8 +23,6 @@ import {
   Bell,
   QrCode,
   Save,
-  Languages,
-  Globe,
   Maximize2,
 } from "lucide-react"
 import { getUITranslation, getFormTranslation, isRTL, getDefaultPlaceholder } from "@/utils/form-builder/translations"
@@ -103,20 +101,6 @@ interface PropertiesPanelProps {
   formId?: string
 }
 
-const AVAILABLE_LANGUAGES = [
-  { code: "en", name: "English", flag: "🇺🇸" },
-  { code: "es", name: "Español", flag: "🇪🇸" },
-  { code: "fr", name: "Français", flag: "🇫🇷" },
-  { code: "de", name: "Deutsch", flag: "🇩🇪" },
-  { code: "it", name: "Italiano", flag: "🇮🇹" },
-  { code: "pt", name: "Português", flag: "🇵🇹" },
-  { code: "ru", name: "Русский", flag: "🇷🇺" },
-  { code: "zh", name: "中文", flag: "🇨🇳" },
-  { code: "ja", name: "日本語", flag: "🇯🇵" },
-  { code: "ko", name: "한국어", flag: "🇰🇷" },
-  { code: "ar", name: "العربية", flag: "🇸🇦" },
-  { code: "he", name: "עברית", flag: "🇮🇱" },
-]
 
 export function PropertiesPanel({
   selectedField,
@@ -131,8 +115,6 @@ export function PropertiesPanel({
   formId,
 }: PropertiesPanelProps) {
   const [isLanguageSelectOpen, setIsLanguageSelectOpen] = useState(false)
-  const [selectedLanguageTab, setSelectedLanguageTab] = useState(formConfig.language)
-  const [languageToAdd, setLanguageToAdd] = useState("")
   const [isRichTextModalOpen, setIsRichTextModalOpen] = useState(false)
 
   const updateFieldOption = (index: number, value: string) => {
@@ -173,71 +155,6 @@ export function PropertiesPanel({
     ? `${window.location.origin}/forms/public/${formId}`
     : `https://forms.app/${(formConfig.title || "untitled-form").toLowerCase().replace(/\s+/g, "-")}`
 
-  // Language management functions
-  const addLanguage = () => {
-    if (!languageToAdd || formConfig.supportedLanguages?.includes(languageToAdd)) return
-
-    const newSupportedLanguages = [...(formConfig.supportedLanguages || [formConfig.language]), languageToAdd]
-    const newLanguageTexts = {
-      ...formConfig.languageTexts,
-      [languageToAdd]: {
-        formTitle: {},
-        formDescription: {},
-        fieldLabels: {},
-        fieldPlaceholders: {},
-        fieldOptions: {},
-        buttonTexts: {},
-      },
-    }
-
-    onFormConfigChange({
-      supportedLanguages: newSupportedLanguages,
-      languageTexts: newLanguageTexts,
-    })
-    setLanguageToAdd("")
-  }
-
-  const removeLanguage = (langCode: string) => {
-    if (langCode === formConfig.language) return // Can't remove main language
-
-    const newSupportedLanguages = formConfig.supportedLanguages?.filter((lang) => lang !== langCode) || []
-    const newLanguageTexts = { ...formConfig.languageTexts }
-    delete newLanguageTexts[langCode]
-
-    onFormConfigChange({
-      supportedLanguages: newSupportedLanguages,
-      languageTexts: newLanguageTexts,
-    })
-
-    if (selectedLanguageTab === langCode) {
-      setSelectedLanguageTab(formConfig.language)
-    }
-  }
-
-  const updateLanguageText = (langCode: string, category: string, key: string, value: string) => {
-    const currentLangTexts = formConfig.languageTexts?.[langCode] as any || {}
-    const currentCategoryTexts = currentLangTexts[category] as any || {}
-
-    const newLanguageTexts = {
-      ...formConfig.languageTexts,
-      [langCode]: {
-        ...currentLangTexts,
-        [category]: {
-          ...currentCategoryTexts,
-          [key]: value,
-        },
-      },
-    }
-    onFormConfigChange({ languageTexts: newLanguageTexts })
-  }
-
-  const getLanguageText = (langCode: string, category: string, key: string): string => {
-    const langTexts = formConfig.languageTexts?.[langCode] as any
-    return langTexts?.[category]?.[key] || ""
-  }
-
-  const supportedLanguages = formConfig.supportedLanguages || [formConfig.language]
-  const availableToAdd = AVAILABLE_LANGUAGES.filter((lang) => !supportedLanguages.includes(lang.code))
 
   // Full-screen form settings
   if (panelMode === "form") {
@@ -268,14 +185,10 @@ export function PropertiesPanel({
         <div className="flex-1 overflow-y-auto bg-gray-50">
           <div className="max-w-4xl mx-auto p-6">
             <Tabs defaultValue="general" className="w-full">
-              <TabsList className="grid w-full grid-cols-4 mb-8 max-w-lg">
+              <TabsList className="grid w-full grid-cols-3 mb-8 max-w-lg">
                 <TabsTrigger value="general" className="text-sm">
                   <Settings className="w-4 h-4 mr-2" />
                   General
-                </TabsTrigger>
-                <TabsTrigger value="languages" className="text-sm">
-                  <Languages className="w-4 h-4 mr-2" />
-                  Languages
                 </TabsTrigger>
                 <TabsTrigger value="sharing" className="text-sm">
                   <Share2 className="w-4 h-4 mr-2" />
@@ -413,242 +326,6 @@ export function PropertiesPanel({
                 </div>
               </TabsContent>
 
-              <TabsContent value="languages" className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  {/* Language Management */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg font-medium flex items-center">
-                        <Globe className="w-5 h-5 text-indigo-600 mr-3" />
-                        Supported Languages
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {/* Current Languages */}
-                      <div className="space-y-2">
-                        {supportedLanguages.map((langCode) => {
-                          const lang = AVAILABLE_LANGUAGES.find((l) => l.code === langCode)
-                          if (!lang) return null
-
-                          return (
-                            <div key={langCode} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                              <div className="flex items-center space-x-3">
-                                <span className="text-lg">{lang.flag}</span>
-                                <div>
-                                  <p className="font-medium text-sm">{lang.name}</p>
-                                  <p className="text-xs text-gray-500">
-                                    {langCode === formConfig.language ? "Main Language" : "Additional"}
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => setSelectedLanguageTab(langCode)}
-                                  className="text-xs"
-                                >
-                                  Edit
-                                </Button>
-                                {langCode !== formConfig.language && (
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => removeLanguage(langCode)}
-                                    className="text-xs text-red-600 hover:text-red-700"
-                                  >
-                                    <Trash2 className="w-3 h-3" />
-                                  </Button>
-                                )}
-                              </div>
-                            </div>
-                          )
-                        })}
-                      </div>
-
-                      {/* Add Language */}
-                      {availableToAdd.length > 0 && (
-                        <div className="pt-4 border-t border-gray-200">
-                          <Label className="text-sm font-medium text-gray-700 mb-2 block">Add Language</Label>
-                          <div className="flex space-x-2">
-                            <Select value={languageToAdd} onValueChange={setLanguageToAdd}>
-                              <SelectTrigger className="flex-1">
-                                <SelectValue placeholder="Select language..." />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {availableToAdd.map((lang) => (
-                                  <SelectItem key={lang.code} value={lang.code}>
-                                    {lang.flag} {lang.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <Button onClick={addLanguage} disabled={!languageToAdd} size="sm">
-                              <Plus className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-
-                  {/* Language Content Editor */}
-                  <Card className="lg:col-span-2">
-                    <CardHeader>
-                      <CardTitle className="text-lg font-medium flex items-center">
-                        <Languages className="w-5 h-5 text-purple-600 mr-3" />
-                        Language Content
-                        {selectedLanguageTab && (
-                          <span className="ml-2 text-sm font-normal text-gray-500">
-                            ({AVAILABLE_LANGUAGES.find((l) => l.code === selectedLanguageTab)?.flag}{" "}
-                            {AVAILABLE_LANGUAGES.find((l) => l.code === selectedLanguageTab)?.name})
-                          </span>
-                        )}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                      {selectedLanguageTab && (
-                        <>
-                          {/* Form Texts */}
-                          <div className="space-y-4">
-                            <h4 className="font-medium text-gray-900">Form Information</h4>
-                            <div className="grid grid-cols-1 gap-4">
-                              <div>
-                                <Label className="text-sm font-medium text-gray-700 mb-2 block">Form Title</Label>
-                                <Input
-                                  value={
-                                    getLanguageText(selectedLanguageTab, "formTitle", "title") ||
-                                    (selectedLanguageTab === formConfig.language ? formConfig.title : "")
-                                  }
-                                  onChange={(e) =>
-                                    updateLanguageText(selectedLanguageTab, "formTitle", "title", e.target.value)
-                                  }
-                                  placeholder="Enter form title..."
-                                  dir={isRTL(selectedLanguageTab) ? "rtl" : "ltr"}
-                                />
-                              </div>
-                              <div>
-                                <Label className="text-sm font-medium text-gray-700 mb-2 block">Form Description</Label>
-                                <Textarea
-                                  value={
-                                    getLanguageText(selectedLanguageTab, "formDescription", "description") ||
-                                    (selectedLanguageTab === formConfig.language ? formConfig.description : "")
-                                  }
-                                  onChange={(e) =>
-                                    updateLanguageText(
-                                      selectedLanguageTab,
-                                      "formDescription",
-                                      "description",
-                                      e.target.value,
-                                    )
-                                  }
-                                  placeholder="Enter form description..."
-                                  rows={3}
-                                  dir={isRTL(selectedLanguageTab) ? "rtl" : "ltr"}
-                                />
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Field Labels */}
-                          <div className="space-y-4">
-                            <h4 className="font-medium text-gray-900">Field Labels</h4>
-                            <div className="space-y-3">
-                              {fields.map((field) => (
-                                <div key={field.id} className="grid grid-cols-2 gap-4">
-                                  <div>
-                                    <Label className="text-xs text-gray-600">{field.type} - Label</Label>
-                                    <Input
-                                      value={
-                                        getLanguageText(selectedLanguageTab, "fieldLabels", field.id) ||
-                                        (selectedLanguageTab === formConfig.language ? field.label : "")
-                                      }
-                                      onChange={(e) =>
-                                        updateLanguageText(selectedLanguageTab, "fieldLabels", field.id, e.target.value)
-                                      }
-                                      placeholder={field.label}
-                                      className="text-sm"
-                                      dir={isRTL(selectedLanguageTab) ? "rtl" : "ltr"}
-                                    />
-                                  </div>
-                                  {field.placeholder && (
-                                    <div>
-                                      <Label className="text-xs text-gray-600">{field.type} - Placeholder</Label>
-                                      <Input
-                                        value={
-                                          getLanguageText(selectedLanguageTab, "fieldPlaceholders", field.id) ||
-                                          (selectedLanguageTab === formConfig.language ? field.placeholder : "")
-                                        }
-                                        onChange={(e) =>
-                                          updateLanguageText(
-                                            selectedLanguageTab,
-                                            "fieldPlaceholders",
-                                            field.id,
-                                            e.target.value,
-                                          )
-                                        }
-                                        placeholder={field.placeholder}
-                                        className="text-sm"
-                                        dir={isRTL(selectedLanguageTab) ? "rtl" : "ltr"}
-                                      />
-                                    </div>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* QR Code for this language */}
-                          <div className="pt-6 border-t border-gray-200">
-                            <h4 className="font-medium text-gray-900 mb-4">QR Code for this Language</h4>
-                            <div className="text-center">
-                              <div className="inline-block p-3 bg-white border-2 border-gray-200 rounded-lg">
-                                <img
-                                  src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(
-                                    `${formUrl}?lang=${selectedLanguageTab}`,
-                                  )}`}
-                                  alt={`Form QR Code - ${AVAILABLE_LANGUAGES.find((l) => l.code === selectedLanguageTab)?.name}`}
-                                  className="w-30 h-30"
-                                />
-                              </div>
-                              <p className="text-xs text-gray-500 mt-2">
-                                QR code for {AVAILABLE_LANGUAGES.find((l) => l.code === selectedLanguageTab)?.name}{" "}
-                                version
-                              </p>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="mt-2 text-xs bg-transparent"
-                                onClick={() => {
-                                  const canvas = document.createElement("canvas")
-                                  const ctx = canvas.getContext("2d")
-                                  const img = new Image()
-                                  img.crossOrigin = "anonymous"
-                                  img.onload = () => {
-                                    canvas.width = img.width
-                                    canvas.height = img.height
-                                    ctx?.drawImage(img, 0, 0)
-                                    const link = document.createElement("a")
-                                    link.download = `${formConfig.title || "form"}-${selectedLanguageTab}-qr-code.png`
-                                    link.href = canvas.toDataURL()
-                                    link.click()
-                                  }
-                                  img.src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(
-                                    `${formUrl}?lang=${selectedLanguageTab}`,
-                                  )}`
-                                }}
-                              >
-                                <QrCode className="w-3 h-3 mr-1" />
-                                Download
-                              </Button>
-                            </div>
-                          </div>
-                        </>
-                      )}
-                    </CardContent>
-                  </Card>
-                </div>
-              </TabsContent>
 
               <TabsContent value="sharing" className="space-y-6">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -786,16 +463,30 @@ export function PropertiesPanel({
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
-                        {formConfig.supportedLanguages?.map((language: string) => {
-                          const languageInfo = AVAILABLE_LANGUAGES.find(lang => lang.code === language)
+                        {(Array.isArray(formConfig.supportedLanguages) ? formConfig.supportedLanguages : ["en"]).map((language: string) => {
+                          // Simple language mapping for display
+                          const languageNames: Record<string, string> = {
+                            'en': 'English 🇺🇸',
+                            'es': 'Español 🇪🇸',
+                            'fr': 'Français 🇫🇷',
+                            'de': 'Deutsch 🇩🇪',
+                            'it': 'Italiano 🇮🇹',
+                            'pt': 'Português 🇵🇹',
+                            'ru': 'Русский 🇷🇺',
+                            'zh': '中文 🇨🇳',
+                            'ja': '日本語 🇯🇵',
+                            'ko': '한국어 🇰🇷',
+                            'ar': 'العربية 🇸🇦',
+                            'he': 'עברית 🇮🇱'
+                          }
+                          const languageDisplay = languageNames[language] || `${language}`
                           const languageUrl = language === 'en' ? formUrl : `${formUrl}?lang=${language}`
                           
                           return (
                             <div key={language} className="border border-gray-200 rounded-lg p-4">
                               <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center gap-2">
-                                  <span className="text-2xl">{languageInfo?.flag}</span>
-                                  <span className="font-medium">{languageInfo?.name || language}</span>
+                                  <span className="font-medium">{languageDisplay}</span>
                                   {language === formConfig.language && (
                                     <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Main</span>
                                   )}
@@ -813,7 +504,7 @@ export function PropertiesPanel({
                                 <div className="flex-shrink-0">
                                   <img
                                     src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(languageUrl)}`}
-                                    alt={`QR Code for ${languageInfo?.name}`}
+                                    alt={`QR Code for ${languageDisplay}`}
                                     className="w-20 h-20 border rounded"
                                   />
                                 </div>
@@ -824,7 +515,7 @@ export function PropertiesPanel({
                                     className="bg-gray-50 text-xs"
                                   />
                                   <p className="text-xs text-gray-500 mt-1">
-                                    Scan QR code to access form in {languageInfo?.name}
+                                    Scan QR code to access form in {languageDisplay}
                                   </p>
                                 </div>
                               </div>

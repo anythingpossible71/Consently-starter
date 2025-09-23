@@ -34,12 +34,12 @@ export async function POST(
         data: JSON.stringify({
           formData,
           language,
-          submittedAt: new Date().toISOString(),
-          userAgent: request.headers.get('user-agent'),
-          ipAddress: request.headers.get('x-forwarded-for') || 
-                     request.headers.get('x-real-ip') || 
-                     'unknown'
-        })
+          submittedAt: new Date().toISOString()
+        }),
+        ip_address: request.headers.get('x-forwarded-for') || 
+                   request.headers.get('x-real-ip') || 
+                   'unknown',
+        user_agent: request.headers.get('user-agent')
       }
     })
 

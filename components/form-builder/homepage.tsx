@@ -213,7 +213,9 @@ export function Homepage({ currentLanguage, onCreateForm, onEditForm, onViewResp
         {filteredForms.map((form) => {
           const selectedLang = getFormLanguage(form.id)
           const shareUrl = getShareUrl(form, selectedLang)
-          const supportedLanguages = form.config?.supportedLanguages || ["en"]
+          const supportedLanguages = Array.isArray(form.config?.supportedLanguages) 
+            ? form.config.supportedLanguages 
+            : ["en"]
           const selectedLangInfo = getLanguageInfo(selectedLang)
 
           return (

@@ -460,6 +460,9 @@ export const FormBuilder = forwardRef<FormBuilderRef, FormBuilderProps>(({ onNav
         })
         // Clear unsaved changes flag since form was saved
         setHasUnsavedChanges(false)
+        // Close settings panel and reload form editor
+        setIsSettingsActive(false)
+        setSelectedField(null)
       } else {
         toast({
           title: "Error",
