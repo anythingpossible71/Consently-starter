@@ -141,10 +141,20 @@ export function FormViewer({ form, language, supportedLanguages }: FormViewerPro
           window.open(form.config.redirectUrl, '_blank')
         } else if (redirectTarget === "parent") {
           // Redirect parent window (for iframe scenarios)
+          console.log('Attempting parent redirect to:', form.config.redirectUrl)
+          console.log('Is in iframe:', window.parent !== window)
           if (window.parent && window.parent !== window) {
-            window.parent.location.href = form.config.redirectUrl
+            try {
+              window.parent.location.href = form.config.redirectUrl
+              console.log('Parent redirect attempted')
+            } catch (error) {
+              console.error('Parent redirect failed:', error)
+              // Fallback to same window if parent redirect fails
+              window.location.href = form.config.redirectUrl
+            }
           } else {
             // Fallback to same window if not in iframe
+            console.log('Not in iframe, redirecting same window')
             window.location.href = form.config.redirectUrl
           }
         } else {

@@ -63,7 +63,7 @@ export async function generateMetadata({ params, searchParams }: PublicFormPageP
   const searchParamsData = await searchParams
   const language = searchParamsData.lang || 'en'
   
-  const result = await getForm(id)
+  const result = await getForm(id, false)
   
   if (!result.success || !result.form) {
     return {
