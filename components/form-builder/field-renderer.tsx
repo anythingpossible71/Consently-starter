@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import type { FormField } from "@/types/form-builder/form-builder"
 import type { FormConfig } from "@/types/form-builder/form-config"
 import { PenTool, Upload, Calendar, Send, Check, ArrowRight } from "lucide-react"
-import { getTranslation, isRTL, getDefaultPlaceholder } from "@/utils/form-builder/translations"
+import { getTranslation, getUITranslation, getFormTranslation, isRTL, getDefaultPlaceholder } from "@/utils/form-builder/translations"
 import { PhoneInput } from "@/components/ui/phone-input"
 import { SignatureModal } from "./signature-modal"
 import { FileUploadField } from "./file-upload-field"
@@ -144,7 +144,7 @@ export function FieldRenderer({ field, formConfig, currentLanguage = "en", value
               disabled={!onChange}
             />
             <Label htmlFor={field.id} className={`${isRTLLanguage ? "text-right mr-2" : "text-left ml-2"} flex-1`}>
-              {field.placeholder || "I agree to the terms and conditions"}
+              {field.placeholder || getFormTranslation("formElements", "agreeToTerms", config.language)}
             </Label>
           </div>
         )
@@ -157,6 +157,7 @@ export function FieldRenderer({ field, formConfig, currentLanguage = "en", value
               value={value || ""}
               onChange={(e) => onChange?.(e.target.value)}
               disabled={!onChange}
+              placeholder={getUITranslation("datePlaceholder", config.language)}
               className={`form-input ${isRTLLanguage ? "text-right" : "text-left"} ${error ? "border-red-500" : ""}`}
               dir={isRTLLanguage ? "rtl" : "ltr"}
             />
@@ -176,6 +177,7 @@ export function FieldRenderer({ field, formConfig, currentLanguage = "en", value
             onChange={onChange}
             disabled={!onChange}
             error={error}
+            language={config.language}
           />
         )
 
@@ -200,30 +202,30 @@ export function FieldRenderer({ field, formConfig, currentLanguage = "en", value
                     onClick={() => setIsSignatureModalOpen(true)}
                   >
                     <PenTool className="w-4 h-4 mr-2" />
-                    Edit Signature
+                    {getFormTranslation("signature", "clickToSignButton", config.language)}
                   </Button>
                 </div>
               ) : (
                 <>
                   <PenTool className="w-12 h-12 text-blue-600 mx-auto mb-3" />
-                  <h3 className="text-lg font-medium text-blue-900 mb-2">Electronic Signature</h3>
-                  <p className="text-sm text-blue-700 mb-4">Click to sign with your finger, mouse, or upload signature</p>
+                  <h3 className="text-lg font-medium text-blue-900 mb-2">{getFormTranslation("signature", "electronicSignature", config.language)}</h3>
+                  <p className="text-sm text-blue-700 mb-4">{getFormTranslation("signature", "clickToSign", config.language)}</p>
                   <Button
                     type="button"
                     variant="outline"
                     className="border-blue-300 text-blue-700 hover:bg-blue-100 bg-transparent"
                     onClick={() => setIsSignatureModalOpen(true)}
                   >
-                    Click to Sign
+                    {getFormTranslation("signature", "clickToSignButton", config.language)}
                   </Button>
                 </>
               )}
               <div
                 className={`flex justify-center mt-3 text-xs text-blue-600 ${isRTLLanguage ? "space-x-reverse space-x-4" : "space-x-4"}`}
               >
-                <span>✓ High Resolution</span>
-                <span>✓ Legally Compliant</span>
-                <span>✓ Timestamped</span>
+                <span>✓ {getFormTranslation("signature", "highResolution", config.language)}</span>
+                <span>✓ {getFormTranslation("signature", "legallyCompliant", config.language)}</span>
+                <span>✓ {getFormTranslation("signature", "timestamped", config.language)}</span>
               </div>
             </div>
             
@@ -259,8 +261,8 @@ export function FieldRenderer({ field, formConfig, currentLanguage = "en", value
               className={`text-gray-700 ${isRTLLanguage ? "text-right" : "text-left"}`}
               dir={isRTLLanguage ? "rtl" : "ltr"}
             >
-              {field.placeholder ||
-                "This is a text block. You can add instructions, terms, or any other information here."}
+              {field.richTextContent || field.placeholder ||
+                getUITranslation("textBlockPlaceholder", config.language)}
             </p>
           </div>
         )
@@ -280,12 +282,12 @@ export function FieldRenderer({ field, formConfig, currentLanguage = "en", value
             dir={isRTLLanguage ? "rtl" : "ltr"}
           >
             <ButtonIcon className={`w-4 h-4 ${isRTLLanguage ? "ml-2" : "mr-2"}`} />
-            {field.buttonText || getTranslation("submitForm", config.language)}
+            {field.buttonText || getFormTranslation("formElements", "submitForm", config.language)}
           </Button>
         )
 
       default:
-        return <div>Unknown field type</div>
+        return <div>{getUITranslation("unknownFieldType", config.language)}</div>
     }
   }
 

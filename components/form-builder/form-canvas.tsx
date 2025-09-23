@@ -7,7 +7,7 @@ import type { FormField } from "@/types/form-builder/form-builder"
 import type { FormConfig } from "@/types/form-builder/form-config"
 import { DraggableField } from "./draggable-field"
 import { Edit3, Send, Check, ArrowRight } from "lucide-react"
-import { getFormTranslation, isRTL } from "@/utils/form-builder/translations"
+import { getFormTranslation, getUITranslation, isRTL } from "@/utils/form-builder/translations"
 
 interface FormCanvasProps {
   fields: FormField[]
@@ -82,8 +82,8 @@ export function FormCanvas({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Start building your form</h3>
-                <p className="text-gray-500">Drag fields from the left panel to start building your form</p>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">{getUITranslation("noFieldsAdded", currentLanguage)}</h3>
+                <p className="text-gray-500">{getUITranslation("addFieldsToSee", currentLanguage)}</p>
               </CardContent>
             </Card>
           ) : (
@@ -123,7 +123,7 @@ export function FormCanvas({
                 label: "Submit Button",
                 required: false,
                 showLabel: false,
-                buttonText: formConfig?.submitButton.text || "Submit",
+                buttonText: formConfig?.submitButton.text || getFormTranslation("formElements", "submitForm", currentLanguage),
                 buttonIcon: formConfig?.submitButton.icon || "send",
                 buttonStyle: formConfig?.submitButton.style || "primary",
               }
@@ -144,7 +144,7 @@ export function FormCanvas({
                 const IconComponent = iconMap[formConfig?.submitButton.icon as keyof typeof iconMap] || Send
                 return <IconComponent className={`w-4 h-4 ${isRTLLanguage ? "ml-2 mr-0" : "mr-2"}`} />
               })()}
-              {formConfig?.submitButton.text || "Submit"}
+              {formConfig?.submitButton.text || getFormTranslation("formElements", "submitForm", currentLanguage)}
             </Button>
 
             {/* Edit indicator - UI controls stay LTR positioned */}

@@ -8,6 +8,8 @@ import { Switch } from "@/components/ui/switch"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import type { FormField } from "@/types/form-builder/form-builder"
 import type { FormConfig } from "@/types/form-builder/form-config"
 import {
@@ -27,6 +29,53 @@ import {
 } from "lucide-react"
 import { getUITranslation, getFormTranslation, isRTL, getDefaultPlaceholder } from "@/utils/form-builder/translations"
 import { useState, useRef } from "react"
+import { Check, ChevronsUpDown } from "lucide-react"
+
+// Available languages with flags and native names
+const AVAILABLE_LANGUAGES = [
+  { code: "en", name: "English", native: "English", flag: "🇺🇸" },
+  { code: "es", name: "Spanish", native: "Español", flag: "🇪🇸" },
+  { code: "fr", name: "French", native: "Français", flag: "🇫🇷" },
+  { code: "de", name: "German", native: "Deutsch", flag: "🇩🇪" },
+  { code: "pt", name: "Portuguese", native: "Português", flag: "🇵🇹" },
+  { code: "it", name: "Italian", native: "Italiano", flag: "🇮🇹" },
+  { code: "nl", name: "Dutch", native: "Nederlands", flag: "🇳🇱" },
+  { code: "ru", name: "Russian", native: "Русский", flag: "🇷🇺" },
+  { code: "zh-CN", name: "Chinese (Simplified)", native: "简体中文", flag: "🇨🇳" },
+  { code: "zh-TW", name: "Chinese (Traditional)", native: "繁體中文", flag: "🇹🇼" },
+  { code: "ja", name: "Japanese", native: "日本語", flag: "🇯🇵" },
+  { code: "ko", name: "Korean", native: "한국어", flag: "🇰🇷" },
+  { code: "ar", name: "Arabic", native: "العربية", flag: "🇸🇦" },
+  { code: "hi", name: "Hindi", native: "हिन्दी", flag: "🇮🇳" },
+  { code: "tr", name: "Turkish", native: "Türkçe", flag: "🇹🇷" },
+  { code: "pl", name: "Polish", native: "Polski", flag: "🇵🇱" },
+  { code: "cs", name: "Czech", native: "Čeština", flag: "🇨🇿" },
+  { code: "el", name: "Greek", native: "Ελληνικά", flag: "🇬🇷" },
+  { code: "he", name: "Hebrew", native: "עברית", flag: "🇮🇱" },
+  { code: "th", name: "Thai", native: "ไทย", flag: "🇹🇭" },
+  { code: "vi", name: "Vietnamese", native: "Tiếng Việt", flag: "🇻🇳" },
+  { code: "id", name: "Indonesian", native: "Bahasa Indonesia", flag: "🇮🇩" },
+  { code: "ms", name: "Malay", native: "Bahasa Melayu", flag: "🇲🇾" },
+  { code: "bn", name: "Bengali", native: "বাংলা", flag: "🇧🇩" },
+  { code: "ur", name: "Urdu", native: "اردو", flag: "🇵🇰" },
+  { code: "sv", name: "Swedish", native: "Svenska", flag: "🇸🇪" },
+  { code: "da", name: "Danish", native: "Dansk", flag: "🇩🇰" },
+  { code: "no", name: "Norwegian", native: "Norsk", flag: "🇳🇴" },
+  { code: "fi", name: "Finnish", native: "Suomi", flag: "🇫🇮" },
+  { code: "ro", name: "Romanian", native: "Română", flag: "🇷🇴" },
+  { code: "hu", name: "Hungarian", native: "Magyar", flag: "🇭🇺" },
+  { code: "sk", name: "Slovak", native: "Slovenčina", flag: "🇸🇰" },
+  { code: "bg", name: "Bulgarian", native: "Български", flag: "🇧🇬" },
+  { code: "uk", name: "Ukrainian", native: "Українська", flag: "🇺🇦" },
+  { code: "tl", name: "Filipino / Tagalog", native: "Filipino", flag: "🇵🇭" },
+  { code: "fa", name: "Persian (Farsi)", native: "فارسی", flag: "🇮🇷" },
+  { code: "ta", name: "Tamil", native: "தமிழ்", flag: "🇮🇳" },
+  { code: "te", name: "Telugu", native: "తెలుగు", flag: "🇮🇳" },
+  { code: "mr", name: "Marathi", native: "मराठी", flag: "🇮🇳" },
+  { code: "gu", name: "Gujarati", native: "ગુજરાતી", flag: "🇮🇳" },
+  { code: "af", name: "Afrikaans", native: "Afrikaans", flag: "🇿🇦" },
+  { code: "sw", name: "Swahili", native: "Kiswahili", flag: "🇰🇪" }
+]
 import { ThemeEditor } from "./theme-editor"
 import { CountrySelector } from "./country-selector"
 import { RichTextEditor, RichTextModal } from "./rich-text-editor"
@@ -116,6 +165,7 @@ export function PropertiesPanel({
 }: PropertiesPanelProps) {
   const [isLanguageSelectOpen, setIsLanguageSelectOpen] = useState(false)
   const [isRichTextModalOpen, setIsRichTextModalOpen] = useState(false)
+  const [isLanguagePopoverOpen, setIsLanguagePopoverOpen] = useState(false)
 
   const updateFieldOption = (index: number, value: string) => {
     if (!selectedField?.options) return
@@ -238,23 +288,62 @@ export function PropertiesPanel({
                       </div>
                       <div>
                         <Label className="text-sm font-medium text-gray-700 mb-2 block">Main Language</Label>
-                        <Select
-                          value={formConfig.language}
-                          onValueChange={(value) => onFormConfigChange({ language: value })}
-                          open={isLanguageSelectOpen}
-                          onOpenChange={setIsLanguageSelectOpen}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="en">🇺🇸 English</SelectItem>
-                            <SelectItem value="es">🇪🇸 Español</SelectItem>
-                            <SelectItem value="fr">🇫🇷 Français</SelectItem>
-                            <SelectItem value="ar">🇸🇦 العربية</SelectItem>
-                            <SelectItem value="he">🇮🇱 עברית</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <Popover open={isLanguagePopoverOpen} onOpenChange={setIsLanguagePopoverOpen}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={isLanguagePopoverOpen}
+                              className="w-full justify-between"
+                            >
+                              {formConfig.language ? (
+                                (() => {
+                                  const selectedLang = AVAILABLE_LANGUAGES.find(lang => lang.code === formConfig.language)
+                                  return selectedLang ? (
+                                    <span className="flex items-center gap-2">
+                                      <span>{selectedLang.flag}</span>
+                                      <span>{selectedLang.native}</span>
+                                    </span>
+                                  ) : "Select language..."
+                                })()
+                              ) : (
+                                "Select language..."
+                              )}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-full p-0">
+                            <Command>
+                              <CommandInput placeholder="Search languages..." />
+                              <CommandList>
+                                <CommandEmpty>No language found.</CommandEmpty>
+                                <CommandGroup>
+                                  {AVAILABLE_LANGUAGES.map((language) => (
+                                    <CommandItem
+                                      key={language.code}
+                                      value={`${language.name} ${language.native} ${language.code}`}
+                                      onSelect={() => {
+                                        onFormConfigChange({ language: language.code })
+                                        setIsLanguagePopoverOpen(false)
+                                      }}
+                                    >
+                                      <Check
+                                        className={`mr-2 h-4 w-4 ${
+                                          formConfig.language === language.code ? "opacity-100" : "opacity-0"
+                                        }`}
+                                      />
+                                      <span className="flex items-center gap-2">
+                                        <span>{language.flag}</span>
+                                        <span>{language.native}</span>
+                                        <span className="text-sm text-gray-500">({language.name})</span>
+                                      </span>
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
                       </div>
                     </CardContent>
                   </Card>
@@ -561,16 +650,20 @@ export function PropertiesPanel({
           {panelMode === "field" && selectedField?.type === "text-block" ? (
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm font-medium">Rich Text Properties</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  {getUITranslation("richTextProperties", formConfig.language)}
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label className="text-xs font-medium text-gray-700 mb-2 block">Rich Text Content</Label>
+                  <Label className="text-xs font-medium text-gray-700 mb-2 block">
+                    {getUITranslation("richTextContent", formConfig.language)}
+                  </Label>
                   <div className="space-y-2">
                     <RichTextEditor
                       content={selectedField.richTextContent || ""}
                       onChange={(content) => onUpdateField(selectedField.id, { richTextContent: content })}
-                      placeholder="Enter your rich text content..."
+                      placeholder={getUITranslation("enterRichTextContent", formConfig.language)}
                       className="min-h-[200px]"
                       isRTL={isRTLLanguage}
                     />
@@ -581,7 +674,7 @@ export function PropertiesPanel({
                       onClick={() => setIsRichTextModalOpen(true)}
                     >
                       <Maximize2 className="w-4 h-4 mr-2" />
-                      Edit in Full Screen
+                      {getUITranslation("editInFullScreen", formConfig.language)}
                     </Button>
                   </div>
                 </div>
@@ -594,7 +687,7 @@ export function PropertiesPanel({
                     <div className="group relative">
                       <HelpCircle className="w-3 h-3 text-gray-400 cursor-help" />
                       <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                        Help text appears below the field to provide additional guidance
+                        {getUITranslation("helpTextTooltip", formConfig.language)}
                       </div>
                     </div>
                   </div>
@@ -622,7 +715,7 @@ export function PropertiesPanel({
                     {getUITranslation("buttonText", formConfig.language)}
                   </Label>
                   <Input
-                    value={formConfig.submitButton.text || ""}
+                    value={formConfig.submitButton.text || getFormTranslation("formElements", "submitForm", formConfig.language)}
                     onChange={(e) => {
                       // Update formConfig.submitButton directly since submit is not in fields array
                       onFormConfigChange({
@@ -660,9 +753,9 @@ export function PropertiesPanel({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="send">Send</SelectItem>
-                      <SelectItem value="check">Check</SelectItem>
-                      <SelectItem value="arrow">Arrow</SelectItem>
+                      <SelectItem value="send">{getUITranslation("send", formConfig.language)}</SelectItem>
+                      <SelectItem value="check">{getUITranslation("check", formConfig.language)}</SelectItem>
+                      <SelectItem value="arrow">{getUITranslation("arrow", formConfig.language)}</SelectItem>
                     </SelectContent>
                   </Select>
         </div>
@@ -688,9 +781,9 @@ export function PropertiesPanel({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="primary">Primary (Blue)</SelectItem>
-                      <SelectItem value="success">Success (Green)</SelectItem>
-                      <SelectItem value="secondary">Secondary (Gray)</SelectItem>
+                      <SelectItem value="primary">{getUITranslation("primary", formConfig.language)}</SelectItem>
+                      <SelectItem value="success">{getUITranslation("success", formConfig.language)}</SelectItem>
+                      <SelectItem value="secondary">{getUITranslation("secondary", formConfig.language)}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -757,7 +850,7 @@ export function PropertiesPanel({
                     <div className="group relative">
                       <HelpCircle className="w-3 h-3 text-gray-400 cursor-help" />
                       <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                        Help text appears below the field to provide additional guidance
+                        {getUITranslation("helpTextTooltip", formConfig.language)}
                       </div>
                     </div>
                   </div>
@@ -789,11 +882,13 @@ export function PropertiesPanel({
                   selectedField.type !== "text-block" &&
                   selectedField.type !== "submit" && (
                     <div>
-                      <Label className="text-xs font-medium text-gray-700">Required Error Message</Label>
+                      <Label className="text-xs font-medium text-gray-700">
+                        {getUITranslation("requiredErrorMessage", formConfig.language)}
+                      </Label>
                       <Input
                         value={selectedField.requiredErrorMessage || ""}
                         onChange={(e) => onUpdateField(selectedField.id, { requiredErrorMessage: e.target.value })}
-                        placeholder={`Please fill your ${(selectedField.label || "field").toLowerCase()}`}
+                        placeholder={getFormTranslation("validation", "pleaseFillRequiredField", formConfig.language)}
                         className="mt-1 text-left"
                         dir={isRTLLanguage ? "rtl" : "ltr"}
                       />

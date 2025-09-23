@@ -7,6 +7,7 @@ import { FieldRenderer } from "./field-renderer"
 import { Globe, CheckCircle } from "lucide-react"
 import type { FormData } from "@/types/form-builder/app-types"
 import type { FormConfig } from "@/types/form-builder/form-config"
+import { getFormTranslation } from "@/utils/form-builder/translations"
 
 interface FormViewerProps {
   form: FormData
@@ -306,7 +307,7 @@ export function FormViewer({ form, language, supportedLanguages }: FormViewerPro
                     "bg-green-600 hover:bg-green-700 text-white"
                   }`}
                 >
-                  {isSubmitting ? "Submitting..." : form.config.submitButton.text}
+                  {isSubmitting ? getFormTranslation("formElements", "submitting", language) : (form.config.submitButton.text || getFormTranslation("formElements", "submitForm", language))}
                 </Button>
               </div>
             </form>

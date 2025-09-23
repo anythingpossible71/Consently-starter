@@ -107,7 +107,7 @@ export const DEFAULT_FORM_CONFIG: FormConfig = {
   enableAnalytics: false,
   trackingId: "",
   submitButton: {
-    text: "Submit",
+    text: "",
     style: "primary",
     icon: "send",
   },

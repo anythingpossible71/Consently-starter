@@ -43,12 +43,16 @@
       "thisFieldIsRequired": "This field is required",
       "pleaseSelectAnOption": "Please select an option",
       "pleaseUploadAFile": "Please upload a file",
-      "pleaseProvideSignature": "Please provide your signature"
+      "pleaseProvideSignature": "Please provide your signature",
+      "pleaseFillRequiredField": "Please fill the required field",
+      "requiredFieldError": "This field is required"
     },
     "fileUpload": {
       "clickToUpload": "Click to upload or drag and drop",
       "fileTypes": "PDF, DOC, JPG up to 10MB",
-      "filesUploaded": "file(s) uploaded"
+      "filesUploaded": "file(s) uploaded",
+      "dropFilesHere": "Drop files here",
+      "maximumFiles": "Maximum {count} files"
     },
     "signature": {
       "electronicSignature": "Electronic Signature",
@@ -57,11 +61,20 @@
       "signatureRecorded": "Your signature has been recorded",
       "highResolution": "High Resolution",
       "legallyCompliant": "Legally Compliant",
-      "timestamped": "Timestamped"
+      "timestamped": "Timestamped",
+      "clickToSignButton": "Click to Sign"
     },
     "success": {
       "formSubmittedSuccessfully": "Form Submitted Successfully!",
-      "thankYouSubmission": "Thank you for your submission. We'll get back to you soon."
+      "thankYouSubmission": "Thank you for your submission. We'll get back to you soon.",
+      "formSubmitted": "Form Submitted!",
+      "thankYouSubmissionReceived": "Thank you for your submission. We have received your response.",
+      "goBack": "Go Back",
+      "closeWindow": "Close Window",
+      "noButton": "No Button",
+      "goBackDescription": "Goes back to the previous page",
+      "closeWindowDescription": "Attempts to close the browser window/tab",
+      "noButtonDescription": "No button will be shown"
     },
     "templates": {
       "yogaClassConsent": "Yoga Class Consent Form",
@@ -106,7 +119,7 @@
       "clickToAddDescription": "לחץ להוספת תיאור",
       "enterFormTitle": "הזן כותרת טופס",
       "enterFormDescription": "הזן תיאור טופס",
-      "submitForm": "שליחת טופס",
+      "submitForm": "שלח",
       "submitting": "שולח...",
       "option": "אפשרות",
       "agreeToTerms": "אני מסכים לתנאים והתניות"
@@ -115,12 +128,16 @@
       "thisFieldIsRequired": "שדה זה נדרש",
       "pleaseSelectAnOption": "אנא בחר אפשרות",
       "pleaseUploadAFile": "אנא העלה קובץ",
-      "pleaseProvideSignature": "אנא ספק את חתימתך"
+      "pleaseProvideSignature": "אנא ספק את חתימתך",
+      "pleaseFillRequiredField": "אנא מלא את השדה הנדרש",
+      "requiredFieldError": "שדה זה הוא שדה חובה"
     },
     "fileUpload": {
       "clickToUpload": "לחץ להעלאה או גרור ושחרר",
       "fileTypes": "PDF, DOC, JPG עד 10MB",
-      "filesUploaded": "קובץ/ים הועלו"
+      "filesUploaded": "קובץ/ים הועלו",
+      "dropFilesHere": "שחרר קבצים כאן",
+      "maximumFiles": "מקסימום {count} קבצים"
     },
     "signature": {
       "electronicSignature": "חתימה אלקטרונית",
@@ -129,11 +146,20 @@
       "signatureRecorded": "החתימה שלך נרשמה",
       "highResolution": "רזולוציה גבוהה",
       "legallyCompliant": "תואם חוקית",
-      "timestamped": "חותמת זמן"
+      "timestamped": "חותמת זמן",
+      "clickToSignButton": "לחץ לחתימה"
     },
     "success": {
       "formSubmittedSuccessfully": "הטופס נשלח בהצלחה!",
-      "thankYouSubmission": "תודה על השליחה. נחזור אליך בקרוב."
+      "thankYouSubmission": "תודה על השליחה. נחזור אליך בקרוב.",
+      "formSubmitted": "הטופס נשלח!",
+      "thankYouSubmissionReceived": "תודה על השליחה. קיבלנו את התגובה שלך.",
+      "goBack": "חזור",
+      "closeWindow": "סגור חלון",
+      "noButton": "ללא כפתור",
+      "goBackDescription": "חוזר לדף הקודם",
+      "closeWindowDescription": "מנסה לסגור את חלון/לשונית הדפדפן",
+      "noButtonDescription": "לא יוצג כפתור"
     },
     "templates": {
       "yogaClassConsent": "טופס הסכמה לשיעור יוגה",

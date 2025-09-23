@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Upload, X, File, CheckCircle, AlertCircle } from "lucide-react";
 import { FormField } from "@/types/form-builder/form-builder";
 import { cn } from "@/lib/utils";
+import { getFormTranslation } from "@/utils/form-builder/translations";
 
 interface FileUploadFieldProps {
   field: FormField;
@@ -14,6 +15,7 @@ interface FileUploadFieldProps {
   onChange?: (files: File[] | string[]) => void;
   disabled?: boolean;
   error?: string;
+  language?: string;
 }
 
 export function FileUploadField({ 
@@ -21,7 +23,8 @@ export function FileUploadField({
   value = [], 
   onChange, 
   disabled = false, 
-  error 
+  error,
+  language = "en"
 }: FileUploadFieldProps) {
   const [dragActive, setDragActive] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -208,7 +211,7 @@ export function FileUploadField({
             dragActive ? "text-blue-500" : "text-gray-400"
           )} />
           <p className="text-sm text-gray-600 mb-1">
-            {dragActive ? "Drop files here" : "Click to upload or drag and drop"}
+            {dragActive ? getFormTranslation("fileUpload", "dropFilesHere", language) : getFormTranslation("fileUpload", "clickToUpload", language)}
           </p>
           <p className="text-xs text-gray-500">
             {acceptedTypes.length > 0 
@@ -218,7 +221,7 @@ export function FileUploadField({
           </p>
           {maxFiles > 1 && (
             <p className="text-xs text-gray-500">
-              Maximum {maxFiles} files
+              {getFormTranslation("fileUpload", "maximumFiles", language).replace("{count}", maxFiles.toString())}
             </p>
           )}
           
