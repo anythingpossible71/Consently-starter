@@ -18,7 +18,7 @@ import { LanguageChangeDialog } from "@/components/form-builder/language-change-
 import { saveForm, getForm } from "@/app/actions/forms"
 import { Button } from "@/components/ui/button"
 import { Save, Loader2 } from "lucide-react"
-import { toast } from "@/hooks/use-toast"
+import { useToast } from "@/hooks/use-toast"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 
 interface FormBuilderProps {
@@ -49,6 +49,8 @@ export const FormBuilder = forwardRef<FormBuilderRef, FormBuilderProps>(({ onNav
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [showExitDialog, setShowExitDialog] = useState(false)
   const [pendingNavigation, setPendingNavigation] = useState<(() => void) | null>(null)
+  
+  const { toast } = useToast()
 
   // Expose unsaved changes state to parent component
   useImperativeHandle(ref, () => ({
@@ -428,13 +430,51 @@ export const FormBuilder = forwardRef<FormBuilderRef, FormBuilderProps>(({ onNav
     }
   }
 
-  const handleSaveChanges = () => {
-    // Here you would typically save to a backend
-    console.log("Saving form configuration:", formConfig)
-    console.log("Saving form fields:", fields)
+  const handleSaveChanges = async () => {
+    if (!formConfig.title.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a form title before saving",
+        variant: "destructive"
+      })
+      return
+    }
 
-    // Show a success message or toast
-    alert("Form settings saved successfully!")
+    try {
+      const result = await saveForm({
+        id: formId,
+        title: formConfig.title,
+        description: formConfig.description,
+        config: formConfig,
+        fields: fields.map(field => ({
+          ...field,
+          // Ensure translations are properly structured
+          translations: field.translations || {}
+        }))
+      })
+
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: "Form settings saved successfully!"
+        })
+        // Clear unsaved changes flag since form was saved
+        setHasUnsavedChanges(false)
+      } else {
+        toast({
+          title: "Error",
+          description: result.message || "Failed to save form settings",
+          variant: "destructive"
+        })
+      }
+    } catch (error) {
+      console.error("Error saving form:", error)
+      toast({
+        title: "Error",
+        description: "Failed to save form settings",
+        variant: "destructive"
+      })
+    }
   }
 
   const handlePublish = async () => {

@@ -662,14 +662,116 @@ export function PropertiesPanel({
                     </CardHeader>
                     <CardContent className="space-y-6">
                       {/* Post-Submission Section */}
-                      <div>
-                        <Label className="text-sm font-medium text-gray-700 mb-2 block">After Submission</Label>
-                        <Input
-                          value={formConfig.redirectUrl}
-                          onChange={(e) => onFormConfigChange({ redirectUrl: e.target.value })}
-                          placeholder="https://example.com/thank-you (optional)"
-                        />
-                        <p className="text-xs text-gray-500 mt-2">Leave empty to show a thank you message instead</p>
+                      <div className="space-y-4">
+                        <div>
+                          <Label className="text-sm font-medium text-gray-700 mb-2 block">Redirect URL (Optional)</Label>
+                          <Input
+                            value={formConfig.redirectUrl}
+                            onChange={(e) => onFormConfigChange({ redirectUrl: e.target.value })}
+                            placeholder="https://example.com/thank-you"
+                          />
+                          <p className="text-xs text-gray-500 mt-2">Leave empty to show a thank you message instead</p>
+                        </div>
+                        
+                        {formConfig.redirectUrl && (
+                          <div>
+                            <Label className="text-sm font-medium text-gray-700 mb-2 block">Redirect Target</Label>
+                            <select
+                              value={formConfig.redirectTarget || "same"}
+                              onChange={(e) => onFormConfigChange({ redirectTarget: e.target.value as "same" | "new" | "parent" })}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                              <option value="same">Same Window</option>
+                              <option value="new">New Tab</option>
+                              <option value="parent">Parent Window (for iframes)</option>
+                            </select>
+                            <p className="text-xs text-gray-500 mt-2">
+                              {formConfig.redirectTarget === "parent" 
+                                ? "Useful when form is embedded in an iframe"
+                                : formConfig.redirectTarget === "new"
+                                ? "Opens redirect URL in a new browser tab"
+                                : "Redirects in the same window"
+                              }
+                            </p>
+                          </div>
+                        )}
+                        
+                        {/* Post-Submit Message Settings */}
+                        <div className="space-y-3">
+                          <Label className="text-sm font-medium text-gray-700">Thank You Message</Label>
+                          
+                          <div>
+                            <Label className="text-xs text-gray-600 mb-1 block">Title</Label>
+                            <Input
+                              value={formConfig.postSubmitSettings?.title || "Form Submitted!"}
+                              onChange={(e) => onFormConfigChange({ 
+                                postSubmitSettings: {
+                                  ...formConfig.postSubmitSettings,
+                                  title: e.target.value
+                                }
+                              })}
+                              placeholder="Form Submitted!"
+                            />
+                          </div>
+                          
+                          <div>
+                            <Label className="text-xs text-gray-600 mb-1 block">Message</Label>
+                            <textarea
+                              value={formConfig.postSubmitSettings?.message || "Thank you for your submission. We have received your response."}
+                              onChange={(e) => onFormConfigChange({ 
+                                postSubmitSettings: {
+                                  ...formConfig.postSubmitSettings,
+                                  message: e.target.value
+                                }
+                              })}
+                              placeholder="Thank you for your submission. We have received your response."
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                              rows={3}
+                            />
+                          </div>
+                          
+                          <div>
+                            <Label className="text-xs text-gray-600 mb-1 block">Button Action</Label>
+                            <select
+                              value={formConfig.postSubmitSettings?.buttonAction || "back"}
+                              onChange={(e) => onFormConfigChange({ 
+                                postSubmitSettings: {
+                                  ...formConfig.postSubmitSettings,
+                                  buttonAction: e.target.value as "back" | "close" | "hidden"
+                                }
+                              })}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                              <option value="back">Go Back</option>
+                              <option value="close">Close Window</option>
+                              <option value="hidden">No Button</option>
+                            </select>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {formConfig.postSubmitSettings?.buttonAction === "close" 
+                                ? "Attempts to close the browser window/tab"
+                                : formConfig.postSubmitSettings?.buttonAction === "hidden"
+                                ? "No button will be shown"
+                                : "Goes back to the previous page"
+                              }
+                            </p>
+                          </div>
+                          
+                          {formConfig.postSubmitSettings?.buttonAction !== "hidden" && (
+                            <div>
+                              <Label className="text-xs text-gray-600 mb-1 block">Button Text</Label>
+                              <Input
+                                value={formConfig.postSubmitSettings?.buttonText || "Go Back"}
+                                onChange={(e) => onFormConfigChange({ 
+                                  postSubmitSettings: {
+                                    ...formConfig.postSubmitSettings,
+                                    buttonText: e.target.value
+                                  }
+                                })}
+                                placeholder="Go Back"
+                              />
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </CardContent>
                   </Card>

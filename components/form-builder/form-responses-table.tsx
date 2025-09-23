@@ -65,8 +65,12 @@ export function FormResponsesTable({ form, onClose }: FormResponsesTableProps) {
     }
 
     if (Array.isArray(value)) {
+      const fullText = value.join(', ')
       return (
-        <div className="flex flex-wrap gap-1">
+        <div 
+          className="flex flex-wrap gap-1 max-w-[200px]" 
+          title={fullText}
+        >
           {value.slice(0, 2).map((item, index) => (
             <Badge key={index} variant="outline" className="text-xs">
               {String(item).substring(0, 20)}
@@ -83,15 +87,20 @@ export function FormResponsesTable({ form, onClose }: FormResponsesTableProps) {
     }
 
     const stringValue = String(value)
-    if (stringValue.length > 50) {
+    const maxLength = 30 // Reduced from 50 for better table layout
+    
+    if (stringValue.length > maxLength) {
       return (
-        <span title={stringValue}>
-          {stringValue.substring(0, 50)}...
+        <span 
+          className="block truncate max-w-[200px] cursor-help" 
+          title={stringValue}
+        >
+          {stringValue.substring(0, maxLength)}...
         </span>
       )
     }
 
-    return <span>{stringValue}</span>
+    return <span className="block truncate max-w-[200px]">{stringValue}</span>
   }
 
   // Load responses
@@ -268,8 +277,17 @@ export function FormResponsesTable({ form, onClose }: FormResponsesTableProps) {
     )
   }
 
-  // Get all available fields
+  // Get all available fields from both form definition and response data
   const allFieldIds = new Set<string>()
+  
+  // First, add all fields from the form definition
+  form.fields.forEach(field => {
+    if (field.type !== 'submit' && field.type !== 'heading' && field.type !== 'text-block') {
+      allFieldIds.add(field.id)
+    }
+  })
+  
+  // Then, add any additional fields that might exist in responses but not in form definition
   responses.forEach(response => {
     const formData = getFormData(response)
     Object.keys(formData).forEach(fieldId => {
@@ -277,10 +295,10 @@ export function FormResponsesTable({ form, onClose }: FormResponsesTableProps) {
     })
   })
 
-  // Use visible fields if set, otherwise show first 5 fields
+  // Use visible fields if set, otherwise show all fields
   const fieldsToShow = viewSettings.visibleFields.length > 0 
     ? viewSettings.visibleFields 
-    : Array.from(allFieldIds).slice(0, 5)
+    : Array.from(allFieldIds)
 
   // Pagination logic
   const totalPages = Math.ceil(responses.length / responsesPerPage)
@@ -378,8 +396,10 @@ export function FormResponsesTable({ form, onClose }: FormResponsesTableProps) {
                     {fieldsToShow.map(fieldId => {
                       const field = form.fields.find(f => f.id === fieldId)
                       return (
-                        <TableCell key={fieldId} className="w-auto bg-white border-r border-gray-200 last:border-r-0">
-                          {renderCellValue(formData[fieldId], field?.type)}
+                        <TableCell key={fieldId} className="w-auto bg-white border-r border-gray-200 last:border-r-0 max-w-[200px]">
+                          <div className="truncate">
+                            {renderCellValue(formData[fieldId], field?.type)}
+                          </div>
                         </TableCell>
                       )
                     })}

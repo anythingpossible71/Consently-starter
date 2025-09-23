@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { FieldRenderer } from "./field-renderer"
@@ -35,6 +35,14 @@ export function FormViewer({ form, language, supportedLanguages }: FormViewerPro
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState<Record<string, any>>({})
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
+  
+  // Check if form was already submitted (from URL parameter)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    if (urlParams.get('submitted') === 'true') {
+      setIsSubmitted(true)
+    }
+  }, [])
   
   const currentLanguageInfo = AVAILABLE_LANGUAGES.find(lang => lang.code === language)
   
@@ -123,7 +131,34 @@ export function FormViewer({ form, language, supportedLanguages }: FormViewerPro
       const result = await response.json()
       console.log('Form submitted successfully:', result)
       
-      setIsSubmitted(true)
+      // Check if there's a redirect URL configured
+      if (form.config.redirectUrl && form.config.redirectUrl.trim()) {
+        // Redirect to the specified URL based on target setting
+        const redirectTarget = form.config.redirectTarget || "same"
+        
+        if (redirectTarget === "new") {
+          // Open in new tab
+          window.open(form.config.redirectUrl, '_blank')
+        } else if (redirectTarget === "parent") {
+          // Redirect parent window (for iframe scenarios)
+          if (window.parent && window.parent !== window) {
+            window.parent.location.href = form.config.redirectUrl
+          } else {
+            // Fallback to same window if not in iframe
+            window.location.href = form.config.redirectUrl
+          }
+        } else {
+          // Default: same window
+          window.location.href = form.config.redirectUrl
+        }
+      } else {
+        // Show the thank you message and update URL
+        setIsSubmitted(true)
+        // Update URL to indicate submission
+        const currentUrl = new URL(window.location.href)
+        currentUrl.searchParams.set('submitted', 'true')
+        window.history.replaceState({}, '', currentUrl.toString())
+      }
     } catch (error) {
       console.error('Error submitting form:', error)
       alert('Failed to submit form. Please try again.')
@@ -133,22 +168,45 @@ export function FormViewer({ form, language, supportedLanguages }: FormViewerPro
   }
   
   if (isSubmitted) {
+    const postSubmitSettings = form.config.postSubmitSettings || {
+      title: "Form Submitted!",
+      message: "Thank you for your submission. We have received your response.",
+      buttonText: "Go Back",
+      buttonAction: "back"
+    }
+    
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardContent className="pt-6">
             <div className="text-center">
               <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Form Submitted!</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                {postSubmitSettings.title}
+              </h2>
               <p className="text-gray-600 mb-4">
-                Thank you for your submission. We have received your response.
+                {postSubmitSettings.message}
               </p>
-              {form.config.redirectUrl && (
+              {postSubmitSettings.buttonAction !== "hidden" && !form.config.redirectUrl && (
                 <Button 
-                  onClick={() => window.location.href = form.config.redirectUrl}
+                  onClick={() => {
+                    if (postSubmitSettings.buttonAction === "close") {
+                      // Try to close the window/tab
+                      window.close()
+                      // If window.close() doesn't work (some browsers block it), go back as fallback
+                      setTimeout(() => {
+                        if (!window.closed) {
+                          window.history.back()
+                        }
+                      }, 100)
+                    } else {
+                      // Default: go back
+                      window.history.back()
+                    }
+                  }}
                   className="w-full"
                 >
-                  Continue
+                  {postSubmitSettings.buttonText}
                 </Button>
               )}
             </div>

@@ -23,6 +23,15 @@ export interface FormConfig {
 
   // URL & Sharing Settings
   redirectUrl: string
+  redirectTarget: "same" | "new" | "parent"
+
+  // Post-Submit Settings
+  postSubmitSettings: {
+    title: string
+    message: string
+    buttonText: string
+    buttonAction: "back" | "close" | "hidden"
+  }
 
   // Notifications
   enableNotifications: boolean
@@ -68,6 +77,13 @@ export const DEFAULT_FORM_CONFIG: FormConfig = {
   supportedLanguages: ["en"],
   languageTexts: {},
   redirectUrl: "",
+  postSubmitSettings: {
+    title: "Form Submitted!",
+    message: "Thank you for your submission. We have received your response.",
+    buttonText: "Go Back",
+    buttonAction: "back"
+  },
+  redirectTarget: "same",
   enableNotifications: true,
   notificationEmail: "",
   notificationMessage:
