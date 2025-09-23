@@ -411,7 +411,16 @@ export const FormBuilder = forwardRef<FormBuilderRef, FormBuilderProps>(({ onNav
   }
 
   const handleFormConfigChange = (updates: Partial<FormConfig>) => {
-    setFormConfig((prev) => ({ ...prev, ...updates }))
+    setFormConfig((prev) => {
+      const newConfig = { ...prev, ...updates }
+      
+      // Synchronize language-related fields when language changes
+      if (updates.language !== undefined) {
+        newConfig.supportedLanguages = [updates.language]
+      }
+      
+      return newConfig
+    })
     markAsChanged()
 
     // Auto-apply theme changes

@@ -19,7 +19,6 @@ import {
   Trash2,
   Calendar,
   FileText,
-  ChevronDown,
   RefreshCw,
 } from "lucide-react"
 import { getUITranslation, isRTL } from "@/utils/form-builder/translations"
@@ -70,7 +69,6 @@ function QRCodeDisplay({ text, size = 120 }: { text: string; size?: number }) {
 
 export function Homepage({ currentLanguage, onCreateForm, onEditForm, onViewResponses, forms, onRefreshForms, onDeleteForm }: HomepageProps) {
   const [searchTerm, setSearchTerm] = useState("")
-  const [selectedLanguages, setSelectedLanguages] = useState<Record<string, string>>({})
   const [qrModalOpen, setQrModalOpen] = useState(false)
   const [qrModalData, setQrModalData] = useState<{ url: string; title: string } | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
@@ -85,11 +83,9 @@ export function Homepage({ currentLanguage, onCreateForm, onEditForm, onViewResp
   )
 
   const getFormLanguage = (formId: string) => {
-    return selectedLanguages[formId] || "en"
-  }
-
-  const setFormLanguage = (formId: string, language: string) => {
-    setSelectedLanguages((prev) => ({ ...prev, [formId]: language }))
+    // Use the form's actual language from database
+    const form = forms.find(f => f.id === formId)
+    return form?.config?.language || "en"
   }
 
   const getShareUrl = (form: FormData, language: string) => {
@@ -236,8 +232,9 @@ export function Homepage({ currentLanguage, onCreateForm, onEditForm, onViewResp
                     )}
                   </div>
                   <div className={`flex items-center gap-2 ${isRTLLanguage ? "flex-row-reverse" : ""}`}>
-                    <Badge variant={form.status === "published" ? "default" : "secondary"}>
-                      {getUITranslation(form.status, currentLanguage)}
+                    <Badge variant="outline" className="flex items-center gap-1">
+                      <span>{selectedLangInfo.flag}</span>
+                      <span>{selectedLangInfo.name}</span>
                     </Badge>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -271,63 +268,37 @@ export function Homepage({ currentLanguage, onCreateForm, onEditForm, onViewResp
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                {/* QR Code and Language Section */}
-                <div
-                  className={`flex items-center gap-4 mb-4 p-3 bg-gray-50 rounded-lg ${isRTLLanguage ? "flex-row-reverse" : ""}`}
-                >
+              <CardContent className="space-y-4">
+                {/* QR Code Section */}
+                <div className="flex justify-center">
                   <div
                     className="cursor-pointer hover:opacity-80 transition-opacity"
                     onClick={() => handleQRClick(form, selectedLang)}
                   >
-                    <QRCodeDisplay text={shareUrl} size={80} />
-                  </div>
-                  <div className="flex-1 space-y-2">
-                    {/* Language Dropdown */}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm" className="w-full justify-between bg-transparent">
-                          <span className="flex items-center gap-2">
-                            <span>{selectedLangInfo.flag}</span>
-                            <span>{selectedLangInfo.name}</span>
-                          </span>
-                          <ChevronDown className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start" className="w-48">
-                        {supportedLanguages.map((langCode) => {
-                          const langInfo = getLanguageInfo(langCode)
-                          return (
-                            <DropdownMenuItem
-                              key={langCode}
-                              onClick={() => setFormLanguage(form.id, langCode)}
-                              className={selectedLang === langCode ? "bg-blue-50" : ""}
-                            >
-                              <span className="flex items-center gap-2">
-                                <span>{langInfo.flag}</span>
-                                <span>{langInfo.name}</span>
-                              </span>
-                            </DropdownMenuItem>
-                          )
-                        })}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-
-                    {/* Share Link */}
-                    <div className="flex items-center gap-1">
-                      <Input value={shareUrl} readOnly className="text-xs h-8 bg-white" />
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-8 w-8 p-0 flex-shrink-0 bg-transparent"
-                        onClick={() => handleCopyLink(shareUrl)}
-                      >
-                        <Copy className="h-3 w-3" />
-                      </Button>
-                    </div>
+                    <QRCodeDisplay text={shareUrl} size={120} />
                   </div>
                 </div>
 
+                {/* URL Input and Copy */}
+                <div className="flex items-center gap-2">
+                  <Input value={shareUrl} readOnly className="text-xs h-8 bg-white flex-1" />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 w-8 p-0 flex-shrink-0"
+                    onClick={() => handleCopyLink(shareUrl)}
+                  >
+                    <Copy className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 w-8 p-0 flex-shrink-0"
+                    onClick={() => window.open(shareUrl, "_blank")}
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                  </Button>
+                </div>
 
                 {/* Action Buttons */}
                 <div className={`flex gap-2 ${isRTLLanguage ? "flex-row-reverse" : ""}`}>
