@@ -1,0 +1,48 @@
+Please set up an automated database backup system for this project. Create commit-tied database snapshots that automatically backup before each git commit.
+
+REQUIREMENTS:
+1. Create `db-backups/` directory
+2. Create `scripts/backup-db.sh` - executable script that:
+   - Gets commit hash/message
+   - Creates folder: `{commit_short}_{timestamp}`
+   - Copies database, schema, migrations
+   - Generates backup-info.json with metadata
+   - Creates README with restore instructions
+   - Shows colored output with database stats
+
+3. Create `scripts/restore-db.sh` - executable script that:
+   - Takes backup folder as argument
+   - Shows backup info from metadata
+   - Backs up current DB before restore
+   - Asks confirmation
+   - Restores and regenerates Prisma client
+
+4. Update `scripts/hooks/pre-commit` to call backup script before existing checks
+
+5. Add to `.gitignore`: `db-backups/`
+
+6. Add to `package.json` scripts:
+   - `"db:backup": "./scripts/backup-db.sh"`
+   - `"db:restore": "./scripts/restore-db.sh"`
+   - `"db:list-backups": "ls -la db-backups/"`
+
+BACKUP STRUCTURE:
+```
+db-backups/{commit_short}_{timestamp}/
+├── prod.db (or detected DB file)
+├── schema.prisma
+├── migrations/
+├── backup-info.json
+└── README.md
+```
+
+FEATURES:
+- Automatic pre-commit backups
+- Commit-tied naming
+- Complete snapshots (DB + schema + migrations)
+- Safe restore with confirmations
+- Colored terminal output
+- Database statistics (forms, responses, users)
+- Local only (never committed)
+
+Test with: `npm run db:backup` and `npm run db:restore {folder}`

@@ -23,7 +23,6 @@ import {
   GripVertical,
   Mail,
   Bell,
-  QrCode,
   Save,
   Maximize2,
 } from "lucide-react"
@@ -261,18 +260,6 @@ export function PropertiesPanel({
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div>
-                        <Label className="text-sm font-medium text-gray-700 mb-2 block">
-                          {getUITranslation("formTitle", formConfig.language)}
-                        </Label>
-                        <Input
-                          value={formConfig.title}
-                          onChange={(e) => onFormConfigChange({ title: e.target.value })}
-                          placeholder={getFormTranslation("formElements", "enterFormTitle", formConfig.language)}
-                          className="text-left"
-                          dir={isRTLLanguage ? "rtl" : "ltr"}
-                        />
-                      </div>
                       <div>
                         <Label className="text-sm font-medium text-gray-700 mb-2 block">
                           {getUITranslation("description", formConfig.language)}
@@ -542,78 +529,6 @@ export function PropertiesPanel({
                     </CardContent>
                   </Card>
 
-                  {/* Language-Specific Links & QR Codes */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg font-medium flex items-center">
-                        <QrCode className="w-5 h-5 text-indigo-600 mr-3" />
-                        Language Links & QR Codes
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        {(Array.isArray(formConfig.supportedLanguages) ? formConfig.supportedLanguages : ["en"]).map((language: string) => {
-                          // Simple language mapping for display
-                          const languageNames: Record<string, string> = {
-                            'en': 'English 🇺🇸',
-                            'es': 'Español 🇪🇸',
-                            'fr': 'Français 🇫🇷',
-                            'de': 'Deutsch 🇩🇪',
-                            'it': 'Italiano 🇮🇹',
-                            'pt': 'Português 🇵🇹',
-                            'ru': 'Русский 🇷🇺',
-                            'zh': '中文 🇨🇳',
-                            'ja': '日本語 🇯🇵',
-                            'ko': '한국어 🇰🇷',
-                            'ar': 'العربية 🇸🇦',
-                            'he': 'עברית 🇮🇱'
-                          }
-                          const languageDisplay = languageNames[language] || `${language}`
-                          const languageUrl = language === 'en' ? formUrl : `${formUrl}?lang=${language}`
-                          
-                          return (
-                            <div key={language} className="border border-gray-200 rounded-lg p-4">
-                              <div className="flex items-center justify-between mb-3">
-                                <div className="flex items-center gap-2">
-                                  <span className="font-medium">{languageDisplay}</span>
-                                  {language === formConfig.language && (
-                                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Main</span>
-                                  )}
-                                </div>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => navigator.clipboard.writeText(languageUrl)}
-                                >
-                                  Copy Link
-                                </Button>
-                              </div>
-                              
-                              <div className="flex items-center gap-4">
-                                <div className="flex-shrink-0">
-                                  <img
-                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(languageUrl)}`}
-                                    alt={`QR Code for ${languageDisplay}`}
-                                    className="w-20 h-20 border rounded"
-                                  />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <Input
-                                    value={languageUrl}
-                                    readOnly
-                                    className="bg-gray-50 text-xs"
-                                  />
-                                  <p className="text-xs text-gray-500 mt-1">
-                                    Scan QR code to access form in {languageDisplay}
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </CardContent>
-                  </Card>
                 </div>
               </TabsContent>
 
