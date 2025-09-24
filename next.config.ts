@@ -4,6 +4,14 @@ const nextConfig: NextConfig = {
   // Enable standalone output for Docker deployments
   output: "standalone",
 
+  // Turbopack configuration to fix Google Fonts resolution
+  turbopack: {
+    resolveAlias: {
+      // Fix for Turbopack Google Fonts resolution
+      "@vercel/turbopack-next/internal/font/google/font": "next/font/google",
+    },
+  },
+
   // Allow external images for avatars
   images: {
     remotePatterns: [

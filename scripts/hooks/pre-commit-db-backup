@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Pre-commit hook for database backup
+# Automatically creates a database backup before each commit
+
+# Colors for output
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+echo -e "${BLUE}🔒 Pre-commit: Creating database backup...${NC}"
+
+# Run the backup script
+./scripts/backup-db.sh
+
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}✅ Database backup completed successfully${NC}"
+else
+    echo -e "${YELLOW}⚠️  Database backup failed, but continuing with commit${NC}"
+fi
+
+# Always allow the commit to proceed (backup is just a safety measure)
+exit 0

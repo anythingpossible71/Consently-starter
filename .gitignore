@@ -178,3 +178,6 @@ uploads/*
 
 # CrunchyCone database upload status file
 .crunchycone-upload-status
+
+# Database backups (automated by git hooks)
+db-backups/

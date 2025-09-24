@@ -1,5 +1,9 @@
 #!/bin/sh
-# Pre-commit hook to prevent committing database files
+# Pre-commit hook to prevent committing database files and create backups
+
+# Create database backup before commit
+echo "🔒 Pre-commit: Creating database backup..."
+./scripts/backup-db.sh
 
 # Check if database files are being committed
 if git diff --cached --name-only | grep -E "(\.db$|\.db-shm$|\.db-wal$|^db/.*\.db|^prisma/db/)" > /dev/null; then

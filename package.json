@@ -19,7 +19,10 @@
     "hooks:remove": "rm -f .git/hooks/pre-commit",
     "port:detect": "./scripts/get-active-port.sh",
     "open:forms": "./scripts/open-localhost.sh /forms",
-    "open:home": "./scripts/open-localhost.sh"
+    "open:home": "./scripts/open-localhost.sh",
+    "db:backup": "./scripts/backup-db.sh",
+    "db:restore": "./scripts/restore-db.sh",
+    "db:list-backups": "ls -la db-backups/"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",
