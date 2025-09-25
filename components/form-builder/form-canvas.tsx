@@ -60,13 +60,13 @@ export function FormCanvas({
   return (
     <div
       ref={scrollContainerRef}
-      className="flex-1 form-canvas-background overflow-y-auto h-full"
+      className="flex-1 overflow-y-auto h-full"
       onScroll={handleScroll}
       style={{ maxHeight: "calc(100vh - 128px)" }}
     >
       {/* Form Content Container - Only this part is RTL */}
       <div
-        className={`max-w-2xl pb-32 ${isRTLLanguage ? "text-right" : "text-left"}`}
+        className={`form-content-container max-w-2xl pb-32 ${isRTLLanguage ? "text-right" : "text-left"}`}
         style={{ margin: "20px auto", padding: "20px 20px 62px 20px" }}
         dir={isRTLLanguage ? "rtl" : "ltr"}
       >

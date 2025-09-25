@@ -205,52 +205,43 @@ export function PropertiesPanel({
     : `https://forms.app/${(formConfig.title || "untitled-form").toLowerCase().replace(/\s+/g, "-")}`
 
 
-  // Full-screen form settings
+  // Side panel form settings
   if (panelMode === "form") {
     return (
-      <div className="fixed inset-0 bg-white z-50 flex flex-col" dir="ltr">
+      <div className="w-96 bg-gray-50 flex flex-col h-full border-l border-gray-200" dir="ltr">
         {/* Header */}
-        <div className="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0">
+        <div className="p-6 border-b border-gray-200 bg-gray-50 text-left">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <Button variant="ghost" size="sm" onClick={onClose} className="p-2">
-                <X className="w-5 h-5" />
-              </Button>
-              <div>
-                <h1 className="text-xl font-semibold text-gray-900">
-                  {getUITranslation("formSettings", formConfig.language)}
-                </h1>
-                <p className="text-sm text-gray-500">Configure your form settings and sharing options</p>
-              </div>
-            </div>
-            <Button onClick={onSaveChanges} className="bg-blue-600 hover:bg-blue-700">
-              <Save className="w-4 h-4 mr-2" />
-              Save Changes
+            <h2 className="text-lg font-semibold text-gray-900">
+              {getUITranslation("formSettings", formConfig.language)}
+            </h2>
+            <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
+              <X className="w-4 h-4" />
             </Button>
           </div>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto bg-gray-50">
-          <div className="max-w-4xl mx-auto p-6">
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-6 pb-20 text-left">
             <Tabs defaultValue="general" className="w-full">
-              <TabsList className="grid w-full grid-cols-3 mb-8 max-w-lg">
-                <TabsTrigger value="general" className="text-sm">
-                  <Settings className="w-4 h-4 mr-2" />
+              <TabsList className="grid w-full grid-cols-3 mb-6">
+                <TabsTrigger value="general" className="text-xs">
+                  <Settings className="w-3 h-3 mr-1" />
                   General
                 </TabsTrigger>
-                <TabsTrigger value="sharing" className="text-sm">
-                  <Share2 className="w-4 h-4 mr-2" />
+                <TabsTrigger value="sharing" className="text-xs">
+                  <Share2 className="w-3 h-3 mr-1" />
                   Sharing
                 </TabsTrigger>
-                <TabsTrigger value="styling" className="text-sm">
-                  <Palette className="w-4 h-4 mr-2" />
+                <TabsTrigger value="styling" className="text-xs">
+                  <Palette className="w-3 h-3 mr-1" />
                   Style
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="general" className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <TabsContent value="general" className="space-y-4">
+                <div className="space-y-4">
                   {/* Form Configuration */}
                   <Card>
                     <CardHeader>
@@ -403,8 +394,8 @@ export function PropertiesPanel({
               </TabsContent>
 
 
-              <TabsContent value="sharing" className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <TabsContent value="sharing" className="space-y-4">
+                <div className="space-y-4">
                   {/* Share & Access */}
                   <Card>
                     <CardHeader>
@@ -532,7 +523,7 @@ export function PropertiesPanel({
                 </div>
               </TabsContent>
 
-              <TabsContent value="styling" className="space-y-6">
+              <TabsContent value="styling" className="space-y-4">
                 <ThemeEditor
                   formConfig={formConfig}
                   onFormConfigChange={onFormConfigChange}
@@ -540,6 +531,14 @@ export function PropertiesPanel({
                 />
               </TabsContent>
             </Tabs>
+
+            {/* Save Button */}
+            <div className="mt-6 pt-4 border-t border-gray-200">
+              <Button onClick={onSaveChanges} className="w-full bg-blue-600 hover:bg-blue-700">
+                <Save className="w-4 h-4 mr-2" />
+                Save Changes
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -548,7 +547,7 @@ export function PropertiesPanel({
 
   // Regular field properties panel (right sidebar)
   return (
-    <div className="w-80 bg-gray-50 flex flex-col h-full border-l border-gray-200" dir="ltr">
+    <div className="w-96 bg-gray-50 flex flex-col h-full border-l border-gray-200" dir="ltr">
       <div className="p-6 border-b border-gray-200 bg-gray-50 text-left">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900">

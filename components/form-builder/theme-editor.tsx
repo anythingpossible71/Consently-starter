@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
-import { Code, Palette, RotateCcw, Play, AlertTriangle, Frame, Paintbrush } from "lucide-react"
+import { Code, Palette, RotateCcw, Play, AlertTriangle, Frame, Paintbrush, Type, MousePointer } from "lucide-react"
 import { THEME_PRESETS, generateThemeCSS } from "@/types/form-builder/theme-config"
 import type { FormConfig } from "@/types/form-builder/form-config"
 import {
@@ -29,7 +30,7 @@ interface ThemeEditorProps {
 
 const THEME_CSS_TEMPLATES = {
   default: `/* Default Theme - Clean and Professional */
-.form-container {
+.form-content-container {
   max-width: 640px;
   margin: 20px auto;
   padding: 2rem;
@@ -37,7 +38,7 @@ const THEME_CSS_TEMPLATES = {
   border-radius: 0.5rem;
   box-shadow: var(--form-box-shadow);
   border: var(--form-border);
-  font-family: Inter, system-ui, sans-serif;
+  font-family: var(--form-font-family);
 }
 
 .form-field {
@@ -88,13 +89,13 @@ const THEME_CSS_TEMPLATES = {
 }`,
 
   minimal: `/* Minimal Theme - Clean and Simple */
-.form-container {
+.form-content-container {
   max-width: 640px;
   margin: 20px auto;
   padding: 2rem;
   background: var(--form-background);
   border: var(--form-border);
-  font-family: system-ui, sans-serif;
+  font-family: var(--form-font-family);
 }
 
 .form-field {
@@ -143,14 +144,14 @@ const THEME_CSS_TEMPLATES = {
 }`,
 
   modern: `/* Modern Theme - Contemporary with Gradients */
-.form-container {
+.form-content-container {
   max-width: 640px;
   margin: 20px auto;
   padding: 0px;
   background: var(--form-background);
   border-radius: 1rem;
   box-shadow: var(--form-box-shadow);
-  font-family: Inter, system-ui, sans-serif;
+  font-family: var(--form-font-family);
 }
 
 .form-field {
@@ -206,14 +207,14 @@ const THEME_CSS_TEMPLATES = {
 }`,
 
   classic: `/* Classic Theme - Traditional and Reliable */
-.form-container {
+.form-content-container {
   max-width: 640px;
   margin: 20px auto;
   padding: 2rem;
   background: var(--form-background);
   border: var(--form-border);
   border-radius: 0.25rem;
-  font-family: Georgia, serif;
+  font-family: var(--form-font-family);
 }
 
 .form-field {
@@ -264,6 +265,18 @@ const THEME_CSS_TEMPLATES = {
 }`,
 }
 
+// Available font families
+const FONT_OPTIONS = [
+  { value: "Inter, system-ui, sans-serif", label: "Inter (Modern)" },
+  { value: "system-ui, -apple-system, sans-serif", label: "System UI" },
+  { value: "Helvetica, Arial, sans-serif", label: "Helvetica" },
+  { value: "Georgia, serif", label: "Georgia (Serif)" },
+  { value: "Times New Roman, serif", label: "Times New Roman" },
+  { value: "Monaco, Consolas, monospace", label: "Monaco (Monospace)" },
+  { value: "Roboto, sans-serif", label: "Roboto" },
+  { value: "Open Sans, sans-serif", label: "Open Sans" },
+]
+
 export function ThemeEditor({ formConfig, onFormConfigChange, onThemeApply }: ThemeEditorProps) {
   const [activeTab, setActiveTab] = useState("presets")
   const [customCSS, setCustomCSS] = useState(formConfig.customCSS)
@@ -275,6 +288,8 @@ export function ThemeEditor({ formConfig, onFormConfigChange, onThemeApply }: Th
     showFrame: formConfig.showFrame,
     showBackground: formConfig.showBackground,
     backgroundColor: formConfig.backgroundColor,
+    formFontFamily: formConfig.formFontFamily,
+    submitButtonColor: formConfig.submitButtonColor,
   })
 
   const handleThemeSelect = (themeId: string) => {
@@ -306,6 +321,18 @@ export function ThemeEditor({ formConfig, onFormConfigChange, onThemeApply }: Th
     applyCurrentSettings({ backgroundColor: color })
   }
 
+  const handleFontFamilyChange = (fontFamily: string) => {
+    onFormConfigChange({ formFontFamily: fontFamily })
+    // Auto-apply changes
+    applyCurrentSettings({ formFontFamily: fontFamily })
+  }
+
+  const handleSubmitButtonColorChange = (color: string) => {
+    onFormConfigChange({ submitButtonColor: color })
+    // Auto-apply changes
+    applyCurrentSettings({ submitButtonColor: color })
+  }
+
   const applyCurrentSettings = (overrides: any = {}) => {
     const currentConfig = { ...formConfig, ...overrides }
     const theme = THEME_PRESETS[currentConfig.selectedTheme] || THEME_PRESETS.default
@@ -333,6 +360,8 @@ export function ThemeEditor({ formConfig, onFormConfigChange, onThemeApply }: Th
       showFrame: formConfig.showFrame,
       showBackground: formConfig.showBackground,
       backgroundColor: formConfig.backgroundColor,
+      formFontFamily: formConfig.formFontFamily,
+      submitButtonColor: formConfig.submitButtonColor,
     })
 
     setShowApplyDialog(false)
@@ -350,6 +379,8 @@ export function ThemeEditor({ formConfig, onFormConfigChange, onThemeApply }: Th
       showFrame: savedState.showFrame,
       showBackground: savedState.showBackground,
       backgroundColor: savedState.backgroundColor,
+      formFontFamily: savedState.formFontFamily,
+      submitButtonColor: savedState.submitButtonColor,
     })
     setCustomCSS(savedState.customCSS)
 
@@ -409,6 +440,49 @@ export function ThemeEditor({ formConfig, onFormConfigChange, onThemeApply }: Th
                 </div>
               </div>
             )}
+
+            {/* Font Family Control */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Type className="w-4 h-4 text-gray-600" />
+                <Label className="text-sm font-medium text-gray-700">Font Family</Label>
+              </div>
+              <Select value={formConfig.formFontFamily} onValueChange={handleFontFamilyChange}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select font" />
+                </SelectTrigger>
+                <SelectContent>
+                  {FONT_OPTIONS.map((font) => (
+                    <SelectItem key={font.value} value={font.value}>
+                      <span style={{ fontFamily: font.value }}>{font.label}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Submit Button Color Control */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <MousePointer className="w-4 h-4 text-gray-600" />
+                <Label className="text-sm font-medium text-gray-700">Submit Button Color</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={formConfig.submitButtonColor}
+                  onChange={(e) => handleSubmitButtonColorChange(e.target.value)}
+                  className="w-10 h-8 rounded border border-gray-300 cursor-pointer"
+                />
+                <input
+                  type="text"
+                  value={formConfig.submitButtonColor}
+                  onChange={(e) => handleSubmitButtonColorChange(e.target.value)}
+                  className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded"
+                  placeholder="#2563eb"
+                />
+              </div>
+            </div>
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab}>

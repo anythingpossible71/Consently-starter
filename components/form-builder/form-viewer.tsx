@@ -266,7 +266,7 @@ export function FormViewer({ form, language, supportedLanguages }: FormViewerPro
         )}
         
         {/* Form */}
-        <Card>
+        <Card className="form-content-container">
           <CardHeader>
             <CardTitle className="text-2xl font-bold text-gray-900">
               {form.title}

@@ -625,55 +625,56 @@ export function generateThemeCSS(theme: ThemeConfigInterface, customCSS?: string
   }
 
   const baseCSS = `
-/* ${theme.name} Theme - Generated CSS */
-:root {
-  --color-primary: ${theme.colors.primary};
-  --color-secondary: ${theme.colors.secondary};
-  --color-background: ${theme.colors.background};
-  --color-surface: ${theme.colors.surface};
-  --color-text: ${theme.colors.text};
-  --color-text-secondary: ${theme.colors.textSecondary};
-  --color-border: ${theme.colors.border};
-  --color-border-light: ${theme.colors.borderLight};
-  --color-success: ${theme.colors.success};
-  --color-warning: ${theme.colors.warning};
-  --color-error: ${theme.colors.error};
-  --color-info: ${theme.colors.info};
+/* ${theme.name} Theme - Generated CSS - Scoped to form elements only */
+.form-content-container, .form-content-container .form-field, .form-content-container .form-label, .form-content-container .form-input, .form-content-container .form-button, .form-content-container .form-button-primary, .form-content-container .form-button-secondary, .form-content-container .form-button-success {
+  /* Form-scoped CSS variables */
+  --form-color-primary: ${theme.colors.primary};
+  --form-color-secondary: ${theme.colors.secondary};
+  --form-color-background: ${theme.colors.background};
+  --form-color-surface: ${theme.colors.surface};
+  --form-color-text: ${theme.colors.text};
+  --form-color-text-secondary: ${theme.colors.textSecondary};
+  --form-color-border: ${theme.colors.border};
+  --form-color-border-light: ${theme.colors.borderLight};
+  --form-color-success: ${theme.colors.success};
+  --form-color-warning: ${theme.colors.warning};
+  --form-color-error: ${theme.colors.error};
+  --form-color-info: ${theme.colors.info};
   
-  --font-family: ${theme.typography.fontFamily};
-  --font-size-xs: ${theme.typography.fontSize.xs};
-  --font-size-sm: ${theme.typography.fontSize.sm};
-  --font-size-base: ${theme.typography.fontSize.base};
-  --font-size-lg: ${theme.typography.fontSize.lg};
-  --font-size-xl: ${theme.typography.fontSize.xl};
-  --font-size-2xl: ${theme.typography.fontSize["2xl"]};
-  --font-size-3xl: ${theme.typography.fontSize["3xl"]};
+  --form-font-family: ${formConfig?.formFontFamily || theme.typography.fontFamily};
+  --form-font-size-xs: ${theme.typography.fontSize.xs};
+  --form-font-size-sm: ${theme.typography.fontSize.sm};
+  --form-font-size-base: ${theme.typography.fontSize.base};
+  --form-font-size-lg: ${theme.typography.fontSize.lg};
+  --form-font-size-xl: ${theme.typography.fontSize.xl};
+  --form-font-size-2xl: ${theme.typography.fontSize["2xl"]};
+  --form-font-size-3xl: ${theme.typography.fontSize["3xl"]};
   
-  --font-weight-normal: ${theme.typography.fontWeight.normal};
-  --font-weight-medium: ${theme.typography.fontWeight.medium};
-  --font-weight-semibold: ${theme.typography.fontWeight.semibold};
-  --font-weight-bold: ${theme.typography.fontWeight.bold};
+  --form-font-weight-normal: ${theme.typography.fontWeight.normal};
+  --form-font-weight-medium: ${theme.typography.fontWeight.medium};
+  --form-font-weight-semibold: ${theme.typography.fontWeight.semibold};
+  --form-font-weight-bold: ${theme.typography.fontWeight.bold};
   
-  --spacing-xs: ${theme.spacing.xs};
-  --spacing-sm: ${theme.spacing.sm};
-  --spacing-md: ${theme.spacing.md};
-  --spacing-lg: ${theme.spacing.lg};
-  --spacing-xl: ${theme.spacing.xl};
-  --spacing-2xl: ${theme.spacing["2xl"]};
-  --spacing-3xl: ${theme.spacing["3xl"]};
+  --form-spacing-xs: ${theme.spacing.xs};
+  --form-spacing-sm: ${theme.spacing.sm};
+  --form-spacing-md: ${theme.spacing.md};
+  --form-spacing-lg: ${theme.spacing.lg};
+  --form-spacing-xl: ${theme.spacing.xl};
+  --form-spacing-2xl: ${theme.spacing["2xl"]};
+  --form-spacing-3xl: ${theme.spacing["3xl"]};
   
-  --border-radius-none: ${theme.borderRadius.none};
-  --border-radius-sm: ${theme.borderRadius.sm};
-  --border-radius-md: ${theme.borderRadius.md};
-  --border-radius-lg: ${theme.borderRadius.lg};
-  --border-radius-xl: ${theme.borderRadius.xl};
-  --border-radius-full: ${theme.borderRadius.full};
+  --form-border-radius-none: ${theme.borderRadius.none};
+  --form-border-radius-sm: ${theme.borderRadius.sm};
+  --form-border-radius-md: ${theme.borderRadius.md};
+  --form-border-radius-lg: ${theme.borderRadius.lg};
+  --form-border-radius-xl: ${theme.borderRadius.xl};
+  --form-border-radius-full: ${theme.borderRadius.full};
   
-  --shadow-none: ${theme.shadows.none};
-  --shadow-sm: ${theme.shadows.sm};
-  --shadow-md: ${theme.shadows.md};
-  --shadow-lg: ${theme.shadows.lg};
-  --shadow-xl: ${theme.shadows.xl};
+  --form-shadow-none: ${theme.shadows.none};
+  --form-shadow-sm: ${theme.shadows.sm};
+  --form-shadow-md: ${theme.shadows.md};
+  --form-shadow-lg: ${theme.shadows.lg};
+  --form-shadow-xl: ${theme.shadows.xl};
   
   /* Dynamic form variables */
   --form-background: ${formBackground};
@@ -682,7 +683,7 @@ export function generateThemeCSS(theme: ThemeConfigInterface, customCSS?: string
   --input-background: ${inputBackground};
 }
 
-.form-container {
+.form-content-container {
   max-width: ${theme.components.form.maxWidth};
   margin: 20px auto;
   padding: ${theme.components.form.padding};
@@ -690,14 +691,14 @@ export function generateThemeCSS(theme: ThemeConfigInterface, customCSS?: string
   border-radius: ${theme.components.form.borderRadius};
   box-shadow: var(--form-box-shadow);
   border: var(--form-border);
-  font-family: var(--font-family);
+  font-family: var(--form-font-family);
 }
 
-.form-field {
+.form-content-container .form-field {
   margin-bottom: ${theme.components.field.marginBottom};
 }
 
-.form-label {
+.form-content-container .form-label {
   display: block;
   font-size: ${theme.components.field.labelFontSize};
   font-weight: ${theme.components.field.labelFontWeight};
@@ -705,7 +706,7 @@ export function generateThemeCSS(theme: ThemeConfigInterface, customCSS?: string
   margin-bottom: ${theme.components.field.labelMarginBottom};
 }
 
-.form-input {
+.form-content-container .form-input {
   width: 100%;
   padding: ${theme.components.input.padding};
   border: ${theme.components.input.borderWidth} solid ${theme.components.input.borderColor};
@@ -713,16 +714,16 @@ export function generateThemeCSS(theme: ThemeConfigInterface, customCSS?: string
   font-size: ${theme.components.input.fontSize};
   background-color: var(--input-background);
   transition: ${theme.components.input.transition};
-  font-family: var(--font-family);
+  font-family: var(--form-font-family);
 }
 
-.form-input:focus {
+.form-content-container .form-input:focus {
   outline: none;
   border-color: ${theme.components.input.focusBorderColor};
   box-shadow: ${theme.components.input.focusBoxShadow};
 }
 
-.form-button {
+.form-content-container .form-button {
   padding: ${theme.components.button.padding};
   border: none;
   border-radius: ${theme.components.button.borderRadius};
@@ -730,76 +731,74 @@ export function generateThemeCSS(theme: ThemeConfigInterface, customCSS?: string
   font-weight: ${theme.components.button.fontWeight};
   cursor: pointer;
   transition: ${theme.components.button.transition};
-  font-family: var(--font-family);
+  font-family: var(--form-font-family);
 }
 
-.form-button-primary {
-  background: ${theme.components.button.primary.backgroundColor};
+.form-content-container .form-button-primary {
+  background: ${formConfig?.submitButtonColor || theme.components.button.primary.backgroundColor};
   color: ${theme.components.button.primary.color};
   border: ${theme.components.button.primary.border};
 }
 
-.form-button-primary:hover {
-  background: ${theme.components.button.primary.hoverBackgroundColor};
+.form-content-container .form-button-primary:hover {
+  background: ${formConfig?.submitButtonColor || theme.components.button.primary.hoverBackgroundColor};
+  opacity: 0.9;
 }
 
-.form-button-secondary {
+.form-content-container .form-button-secondary {
   background: ${theme.components.button.secondary.backgroundColor};
   color: ${theme.components.button.secondary.color};
   border: ${theme.components.button.secondary.border};
 }
 
-.form-button-secondary:hover {
+.form-content-container .form-button-secondary:hover {
   background: ${theme.components.button.secondary.hoverBackgroundColor};
 }
 
-.form-button-success {
+.form-content-container .form-button-success {
   background: ${theme.components.button.success.backgroundColor};
   color: ${theme.components.button.success.color};
   border: ${theme.components.button.success.border};
 }
 
-.form-button-success:hover {
+.form-content-container .form-button-success:hover {
   background: ${theme.components.button.success.hoverBackgroundColor};
 }
 
 /* Form-specific component styling */
-.form-canvas-background {
-  background: var(--form-background);
-}
 
-.form-field-card {
+.form-content-container .form-field-card {
   background: var(--form-background) !important;
-  border-color: var(--color-border);
+  border-color: var(--form-color-border);
 }
 
-.form-field-content {
+.form-content-container .form-field-content {
   background: var(--form-background) !important;
 }
 
-.form-empty-state {
+.form-content-container .form-empty-state {
   background: var(--form-background) !important;
 }
 
-.form-empty-content {
+.form-content-container .form-empty-content {
   background: var(--form-background) !important;
 }
 
-.form-control-button {
+.form-content-container .form-control-button {
   background: var(--form-background) !important;
 }
 
-.form-title-input {
+.form-content-container .form-title-input {
   background: var(--input-background) !important;
 }
 
-.form-description-input {
+.form-content-container .form-description-input {
   background: var(--input-background) !important;
 }
 
 /* Override any hardcoded bg-white classes within form containers */
-.form-container .bg-white,
-.form-container [class*="bg-white"] {
+.form-content-container .bg-white,
+.form-content-container [class*="bg-white"] {
   background: var(--form-background) !important;
 }
 `

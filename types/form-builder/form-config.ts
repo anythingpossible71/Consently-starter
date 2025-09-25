@@ -46,6 +46,8 @@ export interface FormConfig {
   showFrame: boolean
   showBackground: boolean
   backgroundColor: string
+  formFontFamily: string
+  submitButtonColor: string
 
   // Form Layout
   formWidth: "narrow" | "medium" | "wide" | "full"
@@ -95,6 +97,8 @@ export const DEFAULT_FORM_CONFIG: FormConfig = {
   showFrame: true,
   showBackground: true,
   backgroundColor: "#ffffff",
+  formFontFamily: "Inter, system-ui, sans-serif",
+  submitButtonColor: "#2563eb",
   formWidth: "medium",
   showLogo: false,
   logoUrl: "",
