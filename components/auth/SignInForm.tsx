@@ -28,6 +28,7 @@ import {
   hasMagicLinkProvider,
   isEmailPasswordEnabled,
 } from "@/lib/auth/providers";
+import { QuickAdminLoginButton } from "@/components/auth/QuickAdminLoginButton";
 
 const emailPasswordSchema = z.object({
   email: z.string().email({ error: "Invalid email address" }),
@@ -48,16 +49,23 @@ export function SignInForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [isOAuthLoading, setIsOAuthLoading] = useState(false);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
-
   // Get available providers
   const oauthProviders = getOAuthProviders();
   const showOAuthSection = hasOAuthProviders();
   const showMagicLinkTab = hasMagicLinkProvider();
   const showEmailPasswordForm = isEmailPasswordEnabled();
+  
+  // Check if we're in development and should show quick admin login
+  const isDevelopment = process.env.NODE_ENV === "development";
+  const showQuickAdminLogin = isDevelopment;
 
-  // Handle URL error parameters
+  // Handle URL error parameters and quick admin login
   useEffect(() => {
     const urlError = searchParams?.get("error");
+    const quickAdmin = searchParams?.get("quickAdmin");
+    const email = searchParams?.get("email");
+    const password = searchParams?.get("password");
+
     if (urlError) {
       switch (urlError) {
         case "OAuthAccountNotLinked":
@@ -86,6 +94,7 @@ export function SignInForm() {
       email: "",
       password: "",
     },
+    mode: "onChange",
   });
 
   const magicLinkForm = useForm<MagicLinkData>({
@@ -93,7 +102,32 @@ export function SignInForm() {
     defaultValues: {
       email: "",
     },
+    mode: "onChange",
   });
+
+  async function handleQuickAdminLogin(email: string, password: string) {
+    try {
+      setError(null);
+
+      const result = await signIn("credentials", {
+        email: email,
+        password: password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        throw new Error("Quick admin login failed");
+      }
+
+      if (result?.ok) {
+        const callbackUrl = searchParams.get("callbackUrl") || "/";
+        router.push(callbackUrl);
+        router.refresh();
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Quick admin login failed");
+    }
+  }
 
   async function onEmailPasswordSubmit(data: EmailPasswordData) {
     try {
@@ -185,6 +219,9 @@ export function SignInForm() {
 
   return (
     <div className="relative space-y-6">
+      {/* Quick Admin Login Button - Development Only */}
+      {showQuickAdminLogin && <QuickAdminLoginButton callbackUrl={searchParams.get("callbackUrl") || "/"} onError={setError} />}
+
       {/* OAuth Loading Overlay */}
       {isOAuthLoading && (
         <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg">
@@ -201,7 +238,20 @@ export function SignInForm() {
       {/* OAuth Providers Section */}
       {showOAuthSection && (
         <div className="space-y-4">
-          <div className="text-center text-sm text-muted-foreground">Sign in with</div>
+          {/* Show separator only if quick admin login is also shown */}
+          {showQuickAdminLogin && (
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <Separator className="w-full" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">Or sign in with</span>
+              </div>
+            </div>
+          )}
+          {!showQuickAdminLogin && (
+            <div className="text-center text-sm text-muted-foreground">Sign in with</div>
+          )}
           <div className="grid gap-2">
             {oauthProviders.map((provider) => (
               <Button

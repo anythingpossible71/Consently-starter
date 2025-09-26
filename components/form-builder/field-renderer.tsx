@@ -14,6 +14,7 @@ import { getTranslation, getUITranslation, getFormTranslation, isRTL, getDefault
 import { PhoneInput } from "@/components/ui/phone-input"
 import { SignatureModal } from "./signature-modal"
 import { FileUploadField } from "./file-upload-field"
+import { cn } from "@/lib/utils"
 
 interface FieldRendererProps {
   field: FormField
@@ -51,18 +52,19 @@ export function FieldRenderer({ field, formConfig, currentLanguage = "en", value
 
       case "phone":
         return (
-          <PhoneInput
-            value={value || ""}
-            onChange={(val) => onChange?.(val)}
-            placeholder={field.placeholder || getDefaultPlaceholder("phone", config.language)}
-            disabled={!onChange}
-            className="form-input"
-            defaultCountry={field.phoneSettings?.defaultCountryCode as any || "US"}
-            international={field.phoneSettings?.format === "international"}
-            countrySelectProps={{
-              disabled: !field.phoneSettings?.showCountrySelector || field.phoneSettings?.format === "national"
-            }}
-          />
+          <div className={cn("form-input-group", error && "is-error")}>
+            <PhoneInput
+              value={value || ""}
+              onChange={(val) => onChange?.(val)}
+              placeholder={field.placeholder || getDefaultPlaceholder("phone", config.language)}
+              disabled={!onChange}
+              defaultCountry={field.phoneSettings?.defaultCountryCode as any || "US"}
+              international={field.phoneSettings?.format === "international"}
+              countrySelectProps={{
+                disabled: !field.phoneSettings?.showCountrySelector || field.phoneSettings?.format === "national"
+              }}
+            />
+          </div>
         )
 
       case "textarea":
@@ -185,20 +187,18 @@ export function FieldRenderer({ field, formConfig, currentLanguage = "en", value
         const hasSignature = value && value.trim() !== ""
         return (
           <>
-            <div className="border-2 border-dashed border-blue-300 rounded-lg p-8 text-center bg-blue-50">
+            <div className="form-signature-block grid gap-4 rounded-xl border bg-background/90 px-6 py-6 text-center shadow-sm">
               {hasSignature ? (
-                <div className="space-y-4">
-                  <div className="w-full h-32 border border-gray-200 rounded bg-white flex items-center justify-center">
-                    <img 
-                      src={value} 
-                      alt="Signature" 
-                      className="max-h-full max-w-full object-contain"
-                    />
-                  </div>
+                <div className="form-signature-preview flex flex-col items-center gap-4">
+                  <img 
+                    src={value} 
+                    alt="Signature" 
+                    className="form-signature-image w-full max-w-md rounded-lg border bg-white object-contain p-4"
+                  />
                   <Button
                     type="button"
                     variant="outline"
-                    className="border-blue-300 text-blue-700 hover:bg-blue-100 bg-transparent"
+                    className="form-button form-button--secondary"
                     onClick={() => setIsSignatureModalOpen(true)}
                   >
                     <PenTool className="w-4 h-4 mr-2" />
@@ -206,23 +206,27 @@ export function FieldRenderer({ field, formConfig, currentLanguage = "en", value
                   </Button>
                 </div>
               ) : (
-                <>
-                  <PenTool className="w-12 h-12 text-blue-600 mx-auto mb-3" />
-                  <h3 className="text-lg font-medium text-blue-900 mb-2">{getFormTranslation("signature", "electronicSignature", config.language)}</h3>
-                  <p className="text-sm text-blue-700 mb-4">{getFormTranslation("signature", "clickToSign", config.language)}</p>
+                <div className="form-signature-empty flex flex-col items-center gap-3">
+                  <div className="form-signature-icon flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <PenTool className="w-6 h-6" />
+                  </div>
+                  <h3 className="form-signature-title text-lg font-semibold text-foreground">
+                    {getFormTranslation("signature", "electronicSignature", config.language)}
+                  </h3>
+                  <p className="form-help-text max-w-md text-center text-sm text-muted-foreground">
+                    {getFormTranslation("signature", "clickToSign", config.language)}
+                  </p>
                   <Button
                     type="button"
                     variant="outline"
-                    className="border-blue-300 text-blue-700 hover:bg-blue-100 bg-transparent"
+                    className="form-button form-button--secondary"
                     onClick={() => setIsSignatureModalOpen(true)}
                   >
                     {getFormTranslation("signature", "clickToSignButton", config.language)}
                   </Button>
-                </>
+                </div>
               )}
-              <div
-                className={`flex justify-center mt-3 text-xs text-blue-600 ${isRTLLanguage ? "space-x-reverse space-x-4" : "space-x-4"}`}
-              >
+              <div className="form-signature-benefits flex flex-wrap justify-center gap-4 text-xs text-muted-foreground">
                 <span>✓ {getFormTranslation("signature", "highResolution", config.language)}</span>
                 <span>✓ {getFormTranslation("signature", "legallyCompliant", config.language)}</span>
                 <span>✓ {getFormTranslation("signature", "timestamped", config.language)}</span>

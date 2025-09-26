@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useEffect } from "react"
+import { useRef, useEffect, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import type { FormField } from "@/types/form-builder/form-builder"
@@ -21,6 +21,7 @@ interface FormCanvasProps {
   formTitle: string
   currentLanguage: string
   formConfig?: FormConfig
+  formId?: string
   scrollPosition?: number
   onScrollPositionChange?: (position: number) => void
 }
@@ -37,11 +38,13 @@ export function FormCanvas({
   formTitle,
   currentLanguage,
   formConfig,
+  formId,
   scrollPosition = 0,
   onScrollPositionChange,
 }: FormCanvasProps) {
   const isRTLLanguage = isRTL(currentLanguage)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const [dynamicCSS, setDynamicCSS] = useState<string>("")
 
   // Restore scroll position when returning from preview
   useEffect(() => {
@@ -49,6 +52,31 @@ export function FormCanvas({
       scrollContainerRef.current.scrollTop = scrollPosition
     }
   }, [scrollPosition])
+
+  // Load dynamic CSS for the form
+  useEffect(() => {
+    const loadFormCSS = async () => {
+      if (!formId) return
+      
+      try {
+        // Add timestamp to prevent caching
+        const response = await fetch(`/api/forms/${formId}/css?t=${Date.now()}`)
+        if (response.ok) {
+          const css = await response.text()
+          setDynamicCSS(css)
+        }
+      } catch (error) {
+        console.error('Failed to load form CSS:', error)
+      }
+    }
+
+    loadFormCSS()
+    
+    // Set up periodic refresh to pick up style changes
+    const interval = setInterval(loadFormCSS, 2000) // Check every 2 seconds
+    
+    return () => clearInterval(interval)
+  }, [formId])
 
   // Track scroll position
   const handleScroll = () => {
@@ -64,8 +92,14 @@ export function FormCanvas({
       onScroll={handleScroll}
       style={{ maxHeight: "calc(100vh - 128px)" }}
     >
+      {/* Inject dynamic CSS */}
+      {dynamicCSS && (
+        <style dangerouslySetInnerHTML={{ __html: dynamicCSS }} />
+      )}
+      
       {/* Form Content Container - Only this part is RTL */}
       <div
+        id={formId}
         className={`form-content-container max-w-2xl pb-32 ${isRTLLanguage ? "text-right" : "text-left"}`}
         style={{ margin: "20px auto", padding: "20px 20px 62px 20px" }}
         dir={isRTLLanguage ? "rtl" : "ltr"}

@@ -3,7 +3,6 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Upload, X, File, CheckCircle, AlertCircle } from "lucide-react";
 import { FormField } from "@/types/form-builder/form-builder";
 import { cn } from "@/lib/utils";
@@ -190,15 +189,15 @@ export function FileUploadField({
   const hasFiles = currentFiles.length > 0;
 
   return (
-    <div className="space-y-4">
+    <div className="form-field space-y-4">
       {/* Upload Area - Only show when no files are uploaded */}
       {!hasFiles && (
         <div
           className={cn(
-            "border-2 border-dashed rounded-lg p-6 text-center transition-colors",
-            dragActive ? "border-blue-400 bg-blue-50" : "border-gray-300 bg-gray-50",
-            error ? "border-red-300 bg-red-50" : "",
-            disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-gray-100"
+            "form-dropzone flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed bg-muted/30 px-6 py-10 text-center text-sm text-muted-foreground shadow-sm transition-all",
+            dragActive && "border-primary/70 bg-primary/5 shadow-md",
+            error && "border-destructive/70 bg-destructive/10 text-destructive",
+            disabled ? "cursor-not-allowed opacity-70" : "cursor-pointer hover:shadow-lg"
           )}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
@@ -206,21 +205,18 @@ export function FileUploadField({
           onDrop={handleDrop}
           onClick={() => !disabled && fileInputRef.current?.click()}
         >
-          <Upload className={cn(
-            "w-8 h-8 mx-auto mb-2",
-            dragActive ? "text-blue-500" : "text-gray-400"
-          )} />
-          <p className="text-sm text-gray-600 mb-1">
+          <Upload className="form-dropzone-icon h-10 w-10 text-primary" />
+          <p className="form-dropzone-title text-base font-medium text-foreground">
             {dragActive ? getFormTranslation("fileUpload", "dropFilesHere", language) : getFormTranslation("fileUpload", "clickToUpload", language)}
           </p>
-          <p className="text-xs text-gray-500">
+          <p className="form-dropzone-subtitle text-xs text-muted-foreground">
             {acceptedTypes.length > 0 
               ? `${acceptedTypes.join(', ')} up to ${field.maxFileSize || 10}MB`
               : `Files up to ${field.maxFileSize || 10}MB`
             }
           </p>
           {maxFiles > 1 && (
-            <p className="text-xs text-gray-500">
+            <p className="form-dropzone-subtitle text-xs text-muted-foreground">
               {getFormTranslation("fileUpload", "maximumFiles", language).replace("{count}", maxFiles.toString())}
             </p>
           )}
@@ -239,16 +235,15 @@ export function FileUploadField({
 
       {/* Supported File Types Note - Only show when no files are uploaded */}
       {!hasFiles && acceptedTypes.length > 0 && (
-        <div className="text-xs text-gray-600 text-center bg-gray-50 rounded-lg p-3 border">
-          <p className="font-medium mb-1 text-gray-700">Supported file types:</p>
-          <p className="text-gray-600">{acceptedTypes.join(', ')}</p>
+        <div className="form-help-text text-center text-xs text-muted-foreground">
+          <span className="font-medium">Supported file types:</span> {acceptedTypes.join(', ')}
         </div>
       )}
 
       {/* Upload Progress */}
       {uploading && (
-        <div className="flex items-center gap-2 text-sm text-blue-600">
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+        <div className="form-help-text flex items-center gap-2 text-primary">
+          <div className="h-3 w-3 animate-spin rounded-full border-2 border-primary/40 border-t-primary"></div>
           Processing files...
         </div>
       )}
@@ -263,36 +258,36 @@ export function FileUploadField({
               const isImage = mimeType.startsWith('image/');
 
               return (
-                <div key={index} className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg">
+                <div key={index} className="form-file-item flex items-center justify-between gap-4 rounded-lg border bg-background/90 px-4 py-3 shadow-sm">
                   <div className="flex-shrink-0">
                     {isImage ? (
                       <img
                         src={fileData}
                         alt={`Uploaded file ${index + 1}`}
-                      className="w-10 h-10 object-cover rounded border"
+                        className="form-file-preview h-12 w-12 rounded-md border object-cover"
                     />
                   ) : (
-                    <div className="w-10 h-10 bg-gray-100 rounded border flex items-center justify-center">
-                      <File className="w-5 h-5 text-gray-500" />
+                      <div className="form-file-icon flex h-12 w-12 items-center justify-center rounded-md border bg-muted/40 text-muted-foreground">
+                        <File className="w-5 h-5" />
                     </div>
                   )}
                 </div>
                 
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">
+                    <p className="form-file-name truncate text-sm font-medium text-foreground">
                     File {index + 1}.{extension}
                   </p>
-                  <p className="text-xs text-gray-500">{mimeType}</p>
+                    <p className="form-file-meta text-xs text-muted-foreground">{mimeType}</p>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-500" />
+                    <CheckCircle className="form-file-status h-5 w-5 text-emerald-500" />
                   {!disabled && (
                     <Button
-                      variant="ghost"
-                      size="sm"
+                        variant="ghost"
+                        size="icon"
                       onClick={() => removeFile(index)}
-                      className="h-8 w-8 p-0 text-gray-400 hover:text-red-500"
+                        className="form-file-remove h-8 w-8 text-muted-foreground hover:text-destructive"
                     >
                       <X className="w-4 h-4" />
                     </Button>
@@ -306,36 +301,36 @@ export function FileUploadField({
               const isImage = file.type.startsWith('image/');
 
               return (
-                <div key={index} className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg">
+                <div key={index} className="form-file-item flex items-center justify-between gap-4 rounded-lg border bg-background/90 px-4 py-3 shadow-sm">
                   <div className="flex-shrink-0">
                     {isImage ? (
                       <img
                         src={URL.createObjectURL(file)}
                         alt={`Uploaded file ${index + 1}`}
-                        className="w-10 h-10 object-cover rounded border"
+                        className="form-file-preview h-12 w-12 rounded-md border object-cover"
                       />
                     ) : (
-                      <div className="w-10 h-10 bg-gray-100 rounded border flex items-center justify-center">
-                        <File className="w-5 h-5 text-gray-500" />
+                      <div className="form-file-icon flex h-12 w-12 items-center justify-center rounded-md border bg-muted/40 text-muted-foreground">
+                        <File className="w-5 h-5" />
                       </div>
                     )}
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
+                    <p className="form-file-name truncate text-sm font-medium text-foreground">
                       {file.name}
                     </p>
-                    <p className="text-xs text-gray-500">{file.type}</p>
+                    <p className="form-file-meta text-xs text-muted-foreground">{file.type}</p>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <CheckCircle className="form-file-status h-5 w-5 text-emerald-500" />
                     {!disabled && (
                       <Button
                         variant="ghost"
-                        size="sm"
+                        size="icon"
                         onClick={() => removeFile(index)}
-                        className="h-8 w-8 p-0 text-gray-400 hover:text-red-500"
+                        className="form-file-remove h-8 w-8 text-muted-foreground hover:text-destructive"
                       >
                         <X className="w-4 h-4" />
                       </Button>
@@ -350,7 +345,7 @@ export function FileUploadField({
 
       {/* Error Message */}
       {error && (
-        <div className="flex items-center gap-2 text-sm text-red-600">
+        <div className="form-error flex items-center gap-2">
           <AlertCircle className="w-4 h-4" />
           {error}
         </div>

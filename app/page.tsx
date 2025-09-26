@@ -1,6 +1,7 @@
 import { checkAdminExists, isDatabaseEmpty } from "./actions/admin";
 import { getCurrentUser } from "@/lib/auth/permissions";
 import { Button } from "@/components/ui/button";
+import { QuickAdminLoginButton } from "@/components/auth/QuickAdminLoginButton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { SignOutButton } from "@/components/auth/SignOutButton";
@@ -197,6 +198,7 @@ export default async function Home({ searchParams }: HomeProps) {
             </p>
 
             <div className="flex flex-col gap-2">
+              <QuickAdminLoginButton callbackUrl="/forms" />
               <Link href="/auth/signin">
                 <Button className="w-full" variant="default">
                   Sign In

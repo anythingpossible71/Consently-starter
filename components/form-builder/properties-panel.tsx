@@ -528,6 +528,7 @@ export function PropertiesPanel({
                   formConfig={formConfig}
                   onFormConfigChange={onFormConfigChange}
                   onThemeApply={onThemeApply}
+                  formId={formId}
                 />
               </TabsContent>
             </Tabs>

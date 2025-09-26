@@ -281,10 +281,11 @@ export function SignatureModal({
         </Tabs>
 
         <div className="flex justify-end gap-2 pt-4 border-t">
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" className="form-button form-button--secondary" onClick={onClose}>
             Cancel
           </Button>
           <Button 
+            className="form-button form-button--primary"
             onClick={handleSave}
             disabled={isSignatureEmpty()}
           >

@@ -164,12 +164,13 @@ export const FormBuilder = forwardRef<FormBuilderRef, FormBuilderProps>(({ onNav
     setAllFields(fields)
   }, [fields, formId, allFields.length])
 
-  // Initialize theme CSS on mount
+  // Initialize theme CSS on mount - DISABLED for new dynamic CSS system
   useEffect(() => {
-    const theme = THEME_PRESETS[formConfig.selectedTheme] || THEME_PRESETS.default
-    const css = generateThemeCSS(theme, formConfig.applyCustomCSS ? formConfig.customCSS : "")
-    setAppliedCSS(css)
-    applyThemeToDOM(css)
+    // Old CSS system disabled - using new dynamic CSS system instead
+    // const theme = THEME_PRESETS[formConfig.selectedTheme] || THEME_PRESETS.default
+    // const css = generateThemeCSS(theme, formConfig.applyCustomCSS ? formConfig.customCSS : "")
+    // setAppliedCSS(css)
+    // applyThemeToDOM(css)
   }, [])
 
   const applyThemeToDOM = (css: string) => {
@@ -423,12 +424,13 @@ export const FormBuilder = forwardRef<FormBuilderRef, FormBuilderProps>(({ onNav
     })
     markAsChanged()
 
-    // Auto-apply theme changes
+    // Auto-apply theme changes - DISABLED for new dynamic CSS system
     if (updates.selectedTheme || updates.customTheme || updates.customCSS || updates.applyCustomCSS !== undefined) {
-      const newConfig = { ...formConfig, ...updates }
-      const theme = newConfig.customTheme || THEME_PRESETS[newConfig.selectedTheme] || THEME_PRESETS.default
-      const css = generateThemeCSS(theme, newConfig.applyCustomCSS ? newConfig.customCSS : "")
-      handleThemeApply(css)
+      // Old CSS system disabled - using new dynamic CSS system instead
+      // const newConfig = { ...formConfig, ...updates }
+      // const theme = newConfig.customTheme || THEME_PRESETS[newConfig.selectedTheme] || THEME_PRESETS.default
+      // const css = generateThemeCSS(theme, newConfig.applyCustomCSS ? newConfig.customCSS : "")
+      // handleThemeApply(css)
     }
   }
 
@@ -626,6 +628,7 @@ export const FormBuilder = forwardRef<FormBuilderRef, FormBuilderProps>(({ onNav
               formTitle={formConfig.title}
               currentLanguage={formConfig.language}
               formConfig={formConfig}
+              formId={formId}
               scrollPosition={scrollPosition}
               onScrollPositionChange={setScrollPosition}
             />

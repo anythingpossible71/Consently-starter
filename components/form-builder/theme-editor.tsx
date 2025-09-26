@@ -3,14 +3,15 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Textarea } from "@/components/ui/textarea"
+// Textarea import removed - CSS editing is disabled
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
-import { Code, Palette, RotateCcw, Play, AlertTriangle, Frame, Paintbrush, Type, MousePointer } from "lucide-react"
-import { THEME_PRESETS, generateThemeCSS } from "@/types/form-builder/theme-config"
+import { Code, Palette, RotateCcw, AlertTriangle, Frame, Paintbrush, Type, MousePointer } from "lucide-react"
+// Removed old theme system imports - now using database-driven styling
 import type { FormConfig } from "@/types/form-builder/form-config"
+import { FormStylingService } from "@/lib/form-styling/form-styling"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,244 +27,11 @@ interface ThemeEditorProps {
   formConfig: FormConfig
   onFormConfigChange: (updates: Partial<FormConfig>) => void
   onThemeApply: (css: string) => void
+  formId?: string
 }
 
-const THEME_CSS_TEMPLATES = {
-  default: `/* Default Theme - Clean and Professional */
-.form-content-container {
-  max-width: 640px;
-  margin: 20px auto;
-  padding: 2rem;
-  background: var(--form-background);
-  border-radius: 0.5rem;
-  box-shadow: var(--form-box-shadow);
-  border: var(--form-border);
-  font-family: var(--form-font-family);
-}
-
-.form-field {
-  margin-bottom: 1.5rem;
-}
-
-.form-label {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #374151;
-  margin-bottom: 0.5rem;
-}
-
-.form-input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.375rem;
-  font-size: 1rem;
-  background-color: var(--input-background);
-  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-}
-
-.form-input:focus {
-  outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-}
-
-.form-button {
-  padding: 0.75rem 2rem;
-  border: none;
-  border-radius: 0.375rem;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s ease-in-out;
-}
-
-.form-button-primary {
-  background: #2563eb;
-  color: #ffffff;
-}
-
-.form-button-primary:hover {
-  background: #1d4ed8;
-}`,
-
-  minimal: `/* Minimal Theme - Clean and Simple */
-.form-content-container {
-  max-width: 640px;
-  margin: 20px auto;
-  padding: 2rem;
-  background: var(--form-background);
-  border: var(--form-border);
-  font-family: var(--form-font-family);
-}
-
-.form-field {
-  margin-bottom: 1.5rem;
-}
-
-.form-label {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 400;
-  color: #374151;
-  margin-bottom: 0.5rem;
-}
-
-.form-input {
-  width: 100%;
-  padding: 0.5rem 0;
-  border: none;
-  border-bottom: 1px solid #d1d5db;
-  background: var(--input-background);
-  font-size: 1rem;
-  transition: border-color 0.15s ease-in-out;
-}
-
-.form-input:focus {
-  outline: none;
-  border-bottom-color: #000000;
-}
-
-.form-button {
-  padding: 0.5rem 1.5rem;
-  border: none;
-  font-size: 0.875rem;
-  font-weight: 400;
-  cursor: pointer;
-  transition: all 0.15s ease-in-out;
-}
-
-.form-button-primary {
-  background: #000000;
-  color: #ffffff;
-}
-
-.form-button-primary:hover {
-  background: #374151;
-}`,
-
-  modern: `/* Modern Theme - Contemporary with Gradients */
-.form-content-container {
-  max-width: 640px;
-  margin: 20px auto;
-  padding: 0px;
-  background: var(--form-background);
-  border-radius: 1rem;
-  box-shadow: var(--form-box-shadow);
-  font-family: var(--form-font-family);
-}
-
-.form-field {
-  margin-bottom: 2rem;
-}
-
-.form-label {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #111827;
-  margin-bottom: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.form-input {
-  width: 100%;
-  padding: 1rem;
-  border: 2px solid #e5e7eb;
-  border-radius: 0.75rem;
-  font-size: 1rem;
-  background: var(--input-background);
-  transition: all 0.2s ease-in-out;
-}
-
-.form-input:focus {
-  outline: none;
-  border-color: #7c3aed;
-  background: white;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.15);
-}
-
-.form-button {
-  padding: 1rem 2rem;
-  border: none;
-  border-radius: 0.75rem;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-}
-
-.form-button-primary {
-  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
-  color: #ffffff;
-}
-
-.form-button-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(124, 58, 237, 0.3);
-}`,
-
-  classic: `/* Classic Theme - Traditional and Reliable */
-.form-content-container {
-  max-width: 640px;
-  margin: 20px auto;
-  padding: 2rem;
-  background: var(--form-background);
-  border: var(--form-border);
-  border-radius: 0.25rem;
-  font-family: var(--form-font-family);
-}
-
-.form-field {
-  margin-bottom: 1.5rem;
-}
-
-.form-label {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #374151;
-  margin-bottom: 0.5rem;
-}
-
-.form-input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #9ca3af;
-  border-radius: 0.25rem;
-  font-size: 1rem;
-  background: var(--input-background);
-  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-}
-
-.form-input:focus {
-  outline: none;
-  border-color: #059669;
-  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2);
-}
-
-.form-button {
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.25rem;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s ease-in-out;
-}
-
-.form-button-primary {
-  background: #059669;
-  color: #ffffff;
-  border: 1px solid #047857;
-}
-
-.form-button-primary:hover {
-  background: #047857;
-}`,
-}
+// Theme presets are now handled via database CSS variables
+// Individual styling controls (font, colors, etc.) are used instead
 
 // Available font families
 const FONT_OPTIONS = [
@@ -277,14 +45,11 @@ const FONT_OPTIONS = [
   { value: "Open Sans, sans-serif", label: "Open Sans" },
 ]
 
-export function ThemeEditor({ formConfig, onFormConfigChange, onThemeApply }: ThemeEditorProps) {
+export function ThemeEditor({ formConfig, onFormConfigChange, onThemeApply, formId }: ThemeEditorProps) {
   const [activeTab, setActiveTab] = useState("presets")
-  const [customCSS, setCustomCSS] = useState(formConfig.customCSS)
-  const [showApplyDialog, setShowApplyDialog] = useState(false)
   const [showClearDialog, setShowClearDialog] = useState(false)
   const [savedState, setSavedState] = useState({
     selectedTheme: formConfig.selectedTheme,
-    customCSS: formConfig.customCSS,
     showFrame: formConfig.showFrame,
     showBackground: formConfig.showBackground,
     backgroundColor: formConfig.backgroundColor,
@@ -294,100 +59,114 @@ export function ThemeEditor({ formConfig, onFormConfigChange, onThemeApply }: Th
 
   const handleThemeSelect = (themeId: string) => {
     onFormConfigChange({ selectedTheme: themeId })
-    // Load the CSS template for the selected theme
-    const template = THEME_CSS_TEMPLATES[themeId as keyof typeof THEME_CSS_TEMPLATES] || THEME_CSS_TEMPLATES.default
-    setCustomCSS(template)
+    // Note: Themes are now handled via individual CSS variables in the database
+    // The theme selection is kept for UI consistency but styling is database-driven
   }
 
-  const handleCSSChange = (css: string) => {
-    setCustomCSS(css)
-  }
+  // CSS editing removed - now using database-driven styling
 
-  const handleFrameToggle = (checked: boolean) => {
+  const handleFrameToggle = async (checked: boolean) => {
     onFormConfigChange({ showFrame: checked })
     // Auto-apply changes
-    applyCurrentSettings({ showFrame: checked })
+    await applyCurrentSettings({ showFrame: checked })
   }
 
-  const handleBackgroundToggle = (checked: boolean) => {
+  const handleBackgroundToggle = async (checked: boolean) => {
     onFormConfigChange({ showBackground: checked })
     // Auto-apply changes
-    applyCurrentSettings({ showBackground: checked })
+    await applyCurrentSettings({ showBackground: checked })
   }
 
-  const handleBackgroundColorChange = (color: string) => {
+  const handleBackgroundColorChange = async (color: string) => {
     onFormConfigChange({ backgroundColor: color })
     // Auto-apply changes
-    applyCurrentSettings({ backgroundColor: color })
+    await applyCurrentSettings({ backgroundColor: color })
   }
 
-  const handleFontFamilyChange = (fontFamily: string) => {
+  const handleFontFamilyChange = async (fontFamily: string) => {
     onFormConfigChange({ formFontFamily: fontFamily })
     // Auto-apply changes
-    applyCurrentSettings({ formFontFamily: fontFamily })
+    await applyCurrentSettings({ formFontFamily: fontFamily })
   }
 
-  const handleSubmitButtonColorChange = (color: string) => {
+  const handleSubmitButtonColorChange = async (color: string) => {
     onFormConfigChange({ submitButtonColor: color })
     // Auto-apply changes
-    applyCurrentSettings({ submitButtonColor: color })
+    await applyCurrentSettings({ submitButtonColor: color })
   }
 
-  const applyCurrentSettings = (overrides: any = {}) => {
+  const applyCurrentSettings = async (overrides: any = {}) => {
     const currentConfig = { ...formConfig, ...overrides }
-    const theme = THEME_PRESETS[currentConfig.selectedTheme] || THEME_PRESETS.default
-    const css = generateThemeCSS(theme, customCSS, currentConfig)
-    onThemeApply(css)
+    
+    // Save to database if formId is available - this will trigger CSS regeneration
+    if (formId) {
+      try {
+        // Convert form config to CSS variables and save to database
+        const stylingVariables = {
+          '--form-font-family': `"${currentConfig.formFontFamily || 'Inter, system-ui, sans-serif'}"`,
+          '--form-button-primary-background': `"${currentConfig.submitButtonColor || '#2563eb'}"`,
+          '--form-container-background': `"${currentConfig.backgroundColor || '#ffffff'}"`,
+          '--form-show-frame': currentConfig.showFrame ? '"true"' : '"false"',
+          '--form-show-background': currentConfig.showBackground ? '"true"' : '"false"'
+        }
+        
+        const response = await fetch(`/api/forms/${formId}/styles`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ styles: stylingVariables })
+        })
+        
+        if (!response.ok) {
+          throw new Error('Failed to save styles')
+        }
+        
+        // The CSS will be automatically regenerated and applied via the form canvas/viewer
+        // No need to call onThemeApply() as the dynamic CSS system handles this
+        
+      } catch (error) {
+        console.error('Failed to save styling to database:', error)
+      }
+    }
   }
 
-  const handleApply = () => {
-    setShowApplyDialog(true)
-  }
+  // Apply dialog removed - changes are saved automatically
 
-  const confirmApply = () => {
-    // Update the form config
-    onFormConfigChange({ customCSS: customCSS })
-
-    // Generate and apply CSS
-    const theme = THEME_PRESETS[formConfig.selectedTheme] || THEME_PRESETS.default
-    const css = generateThemeCSS(theme, customCSS, formConfig)
-    onThemeApply(css)
-
-    // Update saved state
-    setSavedState({
-      selectedTheme: formConfig.selectedTheme,
-      customCSS: customCSS,
-      showFrame: formConfig.showFrame,
-      showBackground: formConfig.showBackground,
-      backgroundColor: formConfig.backgroundColor,
-      formFontFamily: formConfig.formFontFamily,
-      submitButtonColor: formConfig.submitButtonColor,
-    })
-
-    setShowApplyDialog(false)
-  }
+  // confirmApply function removed - changes are saved automatically
 
   const handleClear = () => {
     setShowClearDialog(true)
   }
 
-  const confirmClear = () => {
+  const confirmClear = async () => {
     // Restore to saved state
     onFormConfigChange({
       selectedTheme: savedState.selectedTheme,
-      customCSS: savedState.customCSS,
       showFrame: savedState.showFrame,
       showBackground: savedState.showBackground,
       backgroundColor: savedState.backgroundColor,
       formFontFamily: savedState.formFontFamily,
       submitButtonColor: savedState.submitButtonColor,
     })
-    setCustomCSS(savedState.customCSS)
 
-    // Apply saved state
-    const theme = THEME_PRESETS[savedState.selectedTheme] || THEME_PRESETS.default
-    const css = generateThemeCSS(theme, savedState.customCSS, savedState)
-    onThemeApply(css)
+    // Reset to database defaults if formId is available
+    if (formId) {
+      try {
+        const response = await fetch(`/api/forms/${formId}/styles/reset`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        })
+        
+        if (!response.ok) {
+          throw new Error('Failed to reset styles')
+        }
+      } catch (error) {
+        console.error('Failed to reset styling in database:', error)
+      }
+    }
 
     setShowClearDialog(false)
   }
@@ -498,61 +277,32 @@ export function ThemeEditor({ formConfig, onFormConfigChange, onThemeApply }: Th
             </TabsList>
 
             <TabsContent value="presets" className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                {Object.values(THEME_PRESETS).map((theme) => (
-                  <Card
-                    key={theme.id}
-                    className={`cursor-pointer transition-all hover:shadow-md ${
-                      formConfig.selectedTheme === theme.id ? "ring-2 ring-blue-500" : ""
-                    }`}
-                    onClick={() => handleThemeSelect(theme.id)}
-                  >
-                    <CardContent className="p-3">
-                      <div className="relative">
-                        {/* Theme Preview */}
-                        <div
-                          className="w-full h-16 rounded border-2 mb-2 relative overflow-hidden"
-                          style={{
-                            backgroundColor: formConfig.showBackground
-                              ? formConfig.backgroundColor || theme.colors.background
-                              : "transparent",
-                            borderColor: formConfig.showFrame ? theme.colors.border : "transparent",
-                            boxShadow: formConfig.showFrame ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
-                          }}
-                        >
-                          {/* Header */}
-                          <div className="h-3 w-full" style={{ backgroundColor: theme.colors.primary, opacity: 0.1 }} />
-                          {/* Form elements */}
-                          <div className="p-2 space-y-1">
-                            <div className="h-2 w-3/4 rounded" style={{ backgroundColor: theme.colors.border }} />
-                            <div className="h-2 w-1/2 rounded" style={{ backgroundColor: theme.colors.border }} />
-                            <div className="h-3 w-1/3 rounded mt-2" style={{ backgroundColor: theme.colors.primary }} />
-                          </div>
-                        </div>
-
-                        <div className="text-center">
-                          <span className="text-xs font-medium text-gray-700">{theme.name}</span>
-                          <p className="text-xs text-gray-500 mt-1">{theme.description}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+              <div className="text-center py-8">
+                <div className="text-sm text-gray-600 mb-4">
+                  🎨 <strong>New Styling System</strong>
+                </div>
+                <p className="text-xs text-gray-500 mb-4">
+                  Form styling is now controlled individually using the controls above.
+                  Each setting is saved to the database and applied automatically.
+                </p>
+                <div className="text-xs text-gray-400">
+                  Font Family • Button Colors • Background Colors • Frame Settings
+                </div>
               </div>
             </TabsContent>
 
             <TabsContent value="css" className="space-y-3">
-              <div className="text-xs text-gray-600">Edit the CSS template for your form</div>
-              <Textarea
-                value={customCSS}
-                onChange={(e) => handleCSSChange(e.target.value)}
-                placeholder="/* Your form CSS will appear here */&#10;.form-container {&#10;  /* Container styles */&#10;}"
-                className="font-mono text-xs min-h-[300px] resize-none"
-                style={{ fontFamily: "Monaco, Consolas, 'Courier New', monospace" }}
-              />
-              <div className="text-xs text-gray-500">
-                This CSS template uses CSS variables (--form-background, --form-border, --form-box-shadow,
-                --input-background) that are automatically controlled by the Frame and Background toggles above.
+              <div className="text-center py-8">
+                <div className="text-sm text-gray-600 mb-4">
+                  🔧 <strong>Advanced CSS (Coming Soon)</strong>
+                </div>
+                <p className="text-xs text-gray-500 mb-4">
+                  Custom CSS editing will be available in a future update.
+                  For now, use the styling controls above to customize your form.
+                </p>
+                <div className="text-xs text-gray-400">
+                  Form styles are now generated automatically from database variables
+                </div>
               </div>
             </TabsContent>
           </Tabs>
@@ -561,34 +311,16 @@ export function ThemeEditor({ formConfig, onFormConfigChange, onThemeApply }: Th
           <div className="space-y-2 pt-2 border-t border-gray-200">
             <Button variant="outline" size="sm" onClick={handleClear} className="w-full bg-transparent">
               <RotateCcw className="w-3 h-3 mr-2" />
-              Clear Changes
+              Reset to Defaults
             </Button>
-            <Button variant="default" size="sm" onClick={handleApply} className="w-full bg-blue-600 hover:bg-blue-700">
-              <Play className="w-3 h-3 mr-2" />
-              Apply Theme
-            </Button>
+            <div className="text-xs text-gray-500 text-center">
+              Changes are saved automatically as you adjust the settings above
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Apply Confirmation Dialog */}
-      <AlertDialog open={showApplyDialog} onOpenChange={setShowApplyDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <Play className="w-4 h-4" />
-              Apply Theme Changes
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              This will apply your current theme and CSS changes to the form. Any previous styling will be overridden.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmApply}>Apply Changes</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Apply Dialog removed - changes are now saved automatically */}
 
       {/* Clear Confirmation Dialog */}
       <AlertDialog open={showClearDialog} onOpenChange={setShowClearDialog}>

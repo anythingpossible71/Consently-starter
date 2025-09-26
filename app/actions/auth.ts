@@ -83,3 +83,55 @@ export async function disconnectOAuthAccountAction(provider: string) {
     throw new Error(`Failed to disconnect ${provider} account`);
   }
 }
+
+/**
+ * Server action for quick admin login in development
+ * Only works in local development environment
+ */
+export async function quickAdminLoginAction() {
+  // Only allow in development
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("Quick admin login is only available in development");
+  }
+
+  const adminEmail = process.env.ADMIN_MAIL;
+  const adminPassword = process.env.ADMIN_PASS;
+
+  if (!adminEmail || !adminPassword) {
+    throw new Error("Admin credentials not configured in environment variables");
+  }
+
+  // Find the admin user
+  const adminUser = await prisma.user.findFirst({
+    where: {
+      email: adminEmail,
+      deleted_at: null,
+    },
+    include: {
+      roles: {
+        where: { deleted_at: null },
+        include: {
+          role: true,
+        },
+      },
+    },
+  });
+
+  if (!adminUser) {
+    throw new Error("Admin user not found in database");
+  }
+
+  // Check if user has admin role
+  const hasAdminRole = adminUser.roles.some(
+    (userRole) => userRole.role.name === "admin" && userRole.role.deleted_at === null
+  );
+
+  if (!hasAdminRole) {
+    throw new Error("User does not have admin role");
+  }
+
+  return {
+    email: adminEmail,
+    password: adminPassword,
+  };
+}

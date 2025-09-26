@@ -217,6 +217,8 @@ model Form {
   fields         FormField[]
   responses      FormResponse[]
   viewSettings   FormViewSettings?
+  stylingVariables FormStylingVariable[]
+  styleTokens    FormStyleToken[]
 
   @@index([user_id])
   @@index([status])
@@ -289,5 +291,77 @@ model FormViewSettings {
 
   @@index([form_id])
   @@index([user_id])
+  @@index([deleted_at])
+}
+
+model FormStylingVariable {
+  id             String   @id @default("")
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+  deleted_at     DateTime?
+  form_id        String
+  variable_name  String
+  variable_value String
+  form           Form     @relation(fields: [form_id], references: [id], onDelete: Cascade)
+
+  @@unique([form_id, variable_name])
+  @@index([form_id])
+  @@index([variable_name])
+  @@index([deleted_at])
+}
+
+model FormStylingDefault {
+  id             String   @id @default("")
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+  deleted_at     DateTime?
+  variable_name  String   @unique
+  default_value  String
+  description    String?
+  category       String
+  data_type      String   // 'color', 'size', 'font', 'spacing', 'border', 'shadow'
+  display_name   String?
+  is_user_editable Boolean @default(true)
+
+  @@index([variable_name])
+  @@index([category])
+  @@index([data_type])
+  @@index([deleted_at])
+}
+
+model FormStyleTokenDefault {
+  id               String  @id @default("")
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+  deleted_at       DateTime?
+  token_name       String   @unique
+  default_value    String
+  description      String?
+  category         String
+  data_type        String
+  display_name     String?
+  is_user_editable Boolean  @default(true)
+  tokens           FormStyleToken[]
+
+  @@index([token_name])
+  @@index([category])
+  @@index([data_type])
+  @@index([deleted_at])
+}
+
+model FormStyleToken {
+  id         String     @id @default("")
+  created_at DateTime   @default(now())
+  updated_at DateTime   @updatedAt
+  deleted_at DateTime?
+  form_id    String
+  token_name String
+  token_value String
+  form       Form       @relation(fields: [form_id], references: [id], onDelete: Cascade)
+  default    FormStyleTokenDefault? @relation(fields: [token_name], references: [token_name])
+
+  @@unique([form_id, token_name])
+  @@index([form_id])
+  @@index([token_name])
   @@index([deleted_at])
 }

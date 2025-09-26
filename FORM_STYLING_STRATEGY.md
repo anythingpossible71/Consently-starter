@@ -4,6 +4,59 @@
 ## Overview
 This document outlines the complete CSS variable system and template structure for form styling isolation based on the **actual current form implementation**. Each form will have its own unique CSS scope based on the form ID.
 
+## ✅ Simplified Token Set (2025-09 Review)
+
+The original proposal intentionally mirrored every Tailwind utility in the existing forms. After adopting the lighter CSS baseline, we now manage a smaller, opinionated group of tokens while keeping backward compatibility with the legacy dynamic CSS stack.
+
+### Core Principles
+- Preserve isolation per form (`#[FORM_ID]` scope) without modifying the legacy runtime.
+- Reduce specialization: phone, file-upload, and signature fields now inherit shared input tokens with only one or two overrides.
+- Keep defaults identical to the simplified Tailwind baseline so we can regenerate fixtures at any time without diff noise.
+- Ship defaults + per-form overrides in **parallel tables** (`FormStyleTokenDefault` + `FormStyleToken`) leaving existing `FormStyling*` tables untouched.
+
+### Token Families (29 total)
+
+| Category | Token | Default | Notes |
+| --- | --- | --- | --- |
+| Layout | `--form-font-family` | `"Inter, system-ui, sans-serif"` | Shared typography stack |
+|  | `--form-font-size-base` | `"1rem"` | Used by inputs & text |
+|  | `--form-text-color` | `"#1f2937"` | Primary foreground |
+|  | `--form-background` | `"#f8fafc"` | Page background |
+|  | `--form-card-background` | `"#ffffff"` | Card/container fill |
+|  | `--form-card-border-radius` | `"0.75rem"` | Rounded container |
+|  | `--form-card-shadow` | `"0 10px 15px -3px rgb(15 23 42 / 0.08)"` | Matches simplified design |
+|  | `--form-card-padding` | `"2rem"` | Applies to `.form-content-container` |
+| Spacing | `--form-gap-field` | `"1.25rem"` | Between fields |
+|  | `--form-gap-section` | `"2.5rem"` | Between headings/sections |
+| Typography | `--form-heading-size` | `"1.5rem"` | H2 equivalent |
+|  | `--form-heading-weight` | `"600"` | Semi-bold |
+|  | `--form-heading-color` | `"#0f172a"` | Slate-900 |
+|  | `--form-label-size` | `"0.95rem"` | Slightly smaller than base |
+|  | `--form-label-weight` | `"600"` | Semi-bold labels |
+|  | `--form-label-color` | `"#0f172a"` | Slate-900 |
+|  | `--form-help-color` | `"#64748b"` | Muted slate |
+|  | `--form-error-color` | `"#ef4444"` | Red-500 |
+| Inputs | `--form-input-height` | `"3rem"` | Applies to single-line inputs |
+|  | `--form-input-background` | `"#ffffff"` | |
+|  | `--form-input-border` | `"1px solid #cbd5f5"` | Sides share border string |
+|  | `--form-input-radius` | `"0.65rem"` | Rounded corners |
+|  | `--form-input-text-color` | `"#0f172a"` | Slate-900 |
+|  | `--form-input-placeholder-color` | `"#94a3b8"` | Slate-400 |
+|  | `--form-input-focus-border` | `"1px solid #2563eb"` | Accent border |
+|  | `--form-input-focus-ring` | `"0 0 0 3px rgba(37, 99, 235, 0.15)"` | Unified ring |
+| Buttons | `--form-button-radius` | `"9999px"` | Pill buttons |
+|  | `--form-button-padding` | `"0.75rem 1.5rem"` | |
+|  | `--form-button-primary-bg` | `"#2563eb"` | Accent |
+|  | `--form-button-primary-text` | `"#ffffff"` | |
+|  | `--form-button-primary-hover-bg` | `"#1d4ed8"` | |
+| Component Overrides | `--form-phone-border` | `"1px solid #cbd5f5"` | Shares with inputs |
+|  | `--form-file-surface` | `"#f1f5f9"` | Muted blue surface |
+|  | `--form-file-hover-surface` | `"#e2e8f0"` | Hover surface |
+|  | `--form-signature-surface` | `"#ecf4ff"` | Light blue pad |
+
+> **Why fewer tokens?** Phone input and file/signature widgets now compose the generic input tokens and only expose surface overrides. This keeps the editor simple while still matching the simplified UI.
+
+
 ## Current Form Elements (Based on FieldType)
 1. **text** - Text input fields
 2. **email** - Email input fields  

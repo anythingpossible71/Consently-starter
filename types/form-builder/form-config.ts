@@ -1,75 +1,58 @@
-import type { ThemeConfigInterface } from "./theme-config"
+import type { ThemeConfigInterface } from "./theme-config";
 
 export interface LanguageTexts {
   [languageCode: string]: {
-    formTitle?: { [key: string]: string }
-    formDescription?: { [key: string]: string }
-    fieldLabels?: { [fieldId: string]: string }
-    fieldPlaceholders?: { [fieldId: string]: string }
-    fieldOptions?: { [fieldId: string]: string[] }
-    buttonTexts?: { [fieldId: string]: string }
-  }
+    formTitle?: Record<string, string>;
+    formDescription?: Record<string, string>;
+    fieldLabels?: Record<string, string>;
+    fieldPlaceholders?: Record<string, string>;
+    fieldOptions?: Record<string, string[]>;
+    buttonTexts?: Record<string, string>;
+  };
 }
 
 export interface FormConfig {
-  // General Settings
-  title: string
-  description: string
-  language: string
-
-  // Multi-language Support
-  supportedLanguages?: string[]
-  languageTexts?: LanguageTexts
-
-  // URL & Sharing Settings
-  redirectUrl: string
-  redirectTarget: "same" | "new" | "parent"
-
-  // Post-Submit Settings
+  title: string;
+  description: string;
+  language: string;
+  supportedLanguages?: string[];
+  languageTexts?: LanguageTexts;
+  redirectUrl: string;
+  redirectTarget: "same" | "new" | "parent";
   postSubmitSettings: {
-    title: string
-    message: string
-    buttonText: string
-    buttonAction: "back" | "close" | "hidden"
-  }
-
-  // Notifications
-  enableNotifications: boolean
-  notificationEmail: string
-  notificationMessage: string
-
-  // Theme & Styling
-  selectedTheme: string
-  customTheme: ThemeConfigInterface | null
-  customCSS: string
-  applyCustomCSS: boolean
-  showFrame: boolean
-  showBackground: boolean
-  backgroundColor: string
-  formFontFamily: string
-  submitButtonColor: string
-
-  // Form Layout
-  formWidth: "narrow" | "medium" | "wide" | "full"
-  showLogo: boolean
-  logoUrl: string
-  logoPosition: "left" | "center" | "right"
-  logoSize: "small" | "medium" | "large"
-
-  // Advanced Settings
-  enableProgressBar: boolean
-  enableSaveAndContinue: boolean
-  enableAutoSave: boolean
-  autoSaveInterval: number
-  enableAnalytics: boolean
-  trackingId: string
-
-  // Submit Button Settings
+    title: string;
+    message: string;
+    buttonText: string;
+    buttonAction: "back" | "close" | "hidden";
+  };
+  enableNotifications: boolean;
+  notificationEmail: string;
+  notificationMessage: string;
+  selectedTheme: string;
+  customTheme: ThemeConfigInterface | null;
+  customCSS: string;
+  applyCustomCSS: boolean;
+  showFrame: boolean;
+  showBackground: boolean;
+  backgroundColor: string;
+  formFontFamily: string;
+  submitButtonColor: string;
+  formWidth: "narrow" | "medium" | "wide" | "full";
+  showLogo: boolean;
+  logoUrl: string;
+  logoPosition: "left" | "center" | "right";
+  logoSize: "small" | "medium" | "large";
+  enableProgressBar: boolean;
+  enableSaveAndContinue: boolean;
+  enableAutoSave: boolean;
+  autoSaveInterval: number;
+  enableAnalytics: boolean;
+  trackingId: string;
   submitButton: {
-    text: string
-    style: "primary" | "secondary" | "success"
-    icon: string
-  }
+    text: string;
+    style: "primary" | "secondary" | "success";
+    icon: "send" | "check" | "arrow";
+  };
 }
 
 export const DEFAULT_FORM_CONFIG: FormConfig = {
@@ -83,7 +66,7 @@ export const DEFAULT_FORM_CONFIG: FormConfig = {
     title: "Form Submitted!",
     message: "Thank you for your submission. We have received your response.",
     buttonText: "Go Back",
-    buttonAction: "back"
+    buttonAction: "back",
   },
   redirectTarget: "same",
   enableNotifications: true,
@@ -115,4 +98,4 @@ export const DEFAULT_FORM_CONFIG: FormConfig = {
     style: "primary",
     icon: "send",
   },
-}
+};
