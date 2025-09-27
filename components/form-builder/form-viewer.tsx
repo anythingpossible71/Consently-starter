@@ -1,10 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { FieldRenderer } from "./field-renderer";
 import { Globe, CheckCircle } from "lucide-react";
+import { FieldRenderer } from "./field-renderer";
 import type { FormData } from "@/types/form-builder/app-types";
 import type { FormConfig } from "@/types/form-builder/form-config";
 import { getFormTranslation, isRTL } from "@/utils/form-builder/translations";
@@ -15,14 +13,13 @@ interface FormViewerProps {
   supportedLanguages: string[];
 }
 
-// Available languages with flags
 const AVAILABLE_LANGUAGES = [
   { code: "en", name: "English", flag: "🇺🇸" },
   { code: "es", name: "Español", flag: "🇪🇸" },
   { code: "fr", name: "Français", flag: "🇫🇷" },
   { code: "de", name: "Deutsch", flag: "🇩🇪" },
   { code: "it", name: "Italiano", flag: "🇮🇹" },
-  { code: "pt", name: "Português", flag: "🇵🇹" },
+  { code: "pt", name: "Português", flag: "🇧🇷" },
   { code: "ru", name: "Русский", flag: "🇷🇺" },
   { code: "ja", name: "日本語", flag: "🇯🇵" },
   { code: "ko", name: "한국어", flag: "🇰🇷" },
@@ -36,9 +33,6 @@ export function FormViewer({ form, language, supportedLanguages }: FormViewerPro
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
-  const [dynamicCSS, setDynamicCSS] = useState<string>("");
-  const styleElementId = `form-style-${form.id}`;
-
   // Check if form was already submitted (from URL parameter)
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -46,35 +40,6 @@ export function FormViewer({ form, language, supportedLanguages }: FormViewerPro
       setIsSubmitted(true);
     }
   }, []);
-
-  // Load dynamic CSS for the form
-  useEffect(() => {
-    const loadFormCSS = async () => {
-      try {
-        const response = await fetch(
-          `/api/forms/${form.id}/css?t=${Date.now()}&lang=${language}&mode=tokens`
-        );
-        if (!response.ok) {
-          // fallback to legacy mode
-          const legacyResponse = await fetch(
-            `/api/forms/${form.id}/css?t=${Date.now()}&lang=${language}&mode=legacy`
-          );
-          if (!legacyResponse.ok) return;
-          const css = await legacyResponse.text();
-          setDynamicCSS(css);
-          return;
-        }
-        const css = await response.text();
-        setDynamicCSS(css);
-      } catch (error) {
-        console.error("🎨 Failed to load form CSS:", error);
-      }
-    };
-
-    loadFormCSS();
-    const interval = setInterval(loadFormCSS, 2000);
-    return () => clearInterval(interval);
-  }, [form.id, language]);
 
   const currentLanguageInfo = AVAILABLE_LANGUAGES.find((lang) => lang.code === language);
 
@@ -94,7 +59,6 @@ export function FormViewer({ form, language, supportedLanguages }: FormViewerPro
       [fieldId]: value,
     }));
 
-    // Clear validation error when user starts typing
     if (validationErrors[fieldId]) {
       setValidationErrors((prev) => {
         const newErrors = { ...prev };
@@ -107,23 +71,19 @@ export function FormViewer({ form, language, supportedLanguages }: FormViewerPro
   const validateForm = () => {
     const errors: Record<string, string> = {};
 
-    // Get all non-submit fields for validation
     const fieldsToValidate = form.fields.filter((field) => field.type !== "submit");
 
     fieldsToValidate.forEach((field) => {
       const value = formData[field.id];
 
-      // Check required fields
       if (field.required && (!value || (typeof value === "string" && value.trim() === ""))) {
         errors[field.id] = `${field.label || "This field"} is required`;
       }
 
-      // Email validation
       if (field.type === "email" && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
         errors[field.id] = "Please enter a valid email address";
       }
 
-      // Phone validation (basic)
       if (
         field.type === "phone" &&
         value &&
@@ -139,7 +99,6 @@ export function FormViewer({ form, language, supportedLanguages }: FormViewerPro
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate form
     const errors = validateForm();
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
@@ -167,40 +126,28 @@ export function FormViewer({ form, language, supportedLanguages }: FormViewerPro
       const result = await response.json();
       console.log("Form submitted successfully:", result);
 
-      // Check if there's a redirect URL configured
       if (form.config.redirectUrl && form.config.redirectUrl.trim()) {
-        // Redirect to the specified URL based on target setting
         const redirectTarget = form.config.redirectTarget || "same";
 
         if (redirectTarget === "new") {
-          // Open in new tab
           window.open(form.config.redirectUrl, "_blank");
         } else if (redirectTarget === "parent") {
-          // Redirect parent window (for iframe scenarios)
-          console.log("Attempting parent redirect to:", form.config.redirectUrl);
-          console.log("Is in iframe:", window.parent !== window);
           if (window.parent && window.parent !== window) {
             try {
               window.parent.location.href = form.config.redirectUrl;
               console.log("Parent redirect attempted");
             } catch (error) {
               console.error("Parent redirect failed:", error);
-              // Fallback to same window if parent redirect fails
               window.location.href = form.config.redirectUrl;
             }
           } else {
-            // Fallback to same window if not in iframe
-            console.log("Not in iframe, redirecting same window");
             window.location.href = form.config.redirectUrl;
           }
         } else {
-          // Default: same window
           window.location.href = form.config.redirectUrl;
         }
       } else {
-        // Show the thank you message and update URL
         setIsSubmitted(true);
-        // Update URL to indicate submission
         const currentUrl = new URL(window.location.href);
         currentUrl.searchParams.set("submitted", "true");
         window.history.replaceState({}, "", currentUrl.toString());
@@ -223,37 +170,33 @@ export function FormViewer({ form, language, supportedLanguages }: FormViewerPro
 
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">{postSubmitSettings.title}</h2>
-              <p className="text-gray-600 mb-4">{postSubmitSettings.message}</p>
-              {postSubmitSettings.buttonAction !== "hidden" && !form.config.redirectUrl && (
-                <Button
-                  onClick={() => {
-                    if (postSubmitSettings.buttonAction === "close") {
-                      // Try to close the window/tab
-                      window.close();
-                      // If window.close() doesn't work (some browsers block it), go back as fallback
-                      setTimeout(() => {
-                        if (!window.closed) {
-                          window.history.back();
-                        }
-                      }, 100);
-                    } else {
-                      // Default: go back
-                      window.history.back();
-                    }
-                  }}
-                  className="w-full"
-                >
-                  {postSubmitSettings.buttonText}
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        <div className="w-full max-w-md rounded-lg border border-gray-200 bg-white shadow-sm p-6">
+          <div className="text-center space-y-4">
+            <CheckCircle className="w-16 h-16 text-green-500 mx-auto" />
+            <h2 className="text-2xl font-bold text-gray-900">{postSubmitSettings.title}</h2>
+            <p className="text-gray-600">{postSubmitSettings.message}</p>
+            {postSubmitSettings.buttonAction !== "hidden" && !form.config.redirectUrl && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (postSubmitSettings.buttonAction === "close") {
+                    window.close();
+                    setTimeout(() => {
+                      if (!window.closed) {
+                        window.history.back();
+                      }
+                    }, 100);
+                  } else {
+                    window.history.back();
+                  }
+                }}
+                className="inline-flex items-center justify-center rounded-full bg-blue-600 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+              >
+                {postSubmitSettings.buttonText}
+              </button>
+            )}
+          </div>
+        </div>
       </div>
     );
   }
@@ -261,66 +204,77 @@ export function FormViewer({ form, language, supportedLanguages }: FormViewerPro
   const isRTLLanguage = isRTL(language);
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      {/* Inject dynamic CSS */}
-      {dynamicCSS && (
-        <>
-          {console.log("🎨 Injecting CSS, length:", dynamicCSS.length)}
-          <style dangerouslySetInnerHTML={{ __html: dynamicCSS }} />
-        </>
-      )}
-
-      <div id={form.id} className="max-w-2xl mx-auto px-4" dir={isRTLLanguage ? "rtl" : "ltr"}>
-        {/* Language Selector */}
+    <div className="min-h-screen bg-slate-50 py-8">
+      <div
+        data-public-form-id={form.id}
+        id={form.id}
+        className="max-w-2xl mx-auto px-4"
+        dir={isRTLLanguage ? "rtl" : "ltr"}
+      >
         {supportedLanguages.length > 1 && (
-          <div className="mb-6">
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Globe className="w-5 h-5 text-gray-600" />
-                    <span className="text-sm font-medium text-gray-700">Language:</span>
-                  </div>
-                  <div className="flex gap-2">
-                    {supportedLanguages.map((lang) => {
-                      const langInfo = AVAILABLE_LANGUAGES.find((l) => l.code === lang);
-                      return (
-                        <button
-                          key={lang}
-                          onClick={() => handleLanguageChange(lang)}
-                          className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                            language === lang
-                              ? "bg-blue-100 text-blue-700 border border-blue-200"
-                              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                          }`}
-                        >
-                          <span>{langInfo?.flag}</span>
-                          <span>{langInfo?.name}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          <div className="mb-6 rounded-lg border border-gray-200 bg-white shadow-sm">
+            <div className="flex items-center justify-between px-6 py-4">
+              <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                <Globe className="w-5 h-5" />
+                <span>Language:</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {supportedLanguages.map((lang) => {
+                  const langInfo = AVAILABLE_LANGUAGES.find((l) => l.code === lang);
+                  return (
+                    <button
+                      type="button"
+                      key={lang}
+                      onClick={() => handleLanguageChange(lang)}
+                      className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                        language === lang
+                          ? "border-blue-200 bg-blue-100 text-blue-700"
+                          : "border-transparent bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      }`}
+                    >
+                      <span>{langInfo?.flag}</span>
+                      <span>{langInfo?.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         )}
 
-        {/* Form */}
-        <Card id={form.id} className="form-content-container">
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold text-gray-900">{form.title}</CardTitle>
-            {form.description && <p className="text-gray-600 mt-2">{form.description}</p>}
-          </CardHeader>
-          <CardContent>
+        <section className="form-content-container">
+          <header className="space-y-3">
+            <h1
+              style={{
+                color: "var(--form-heading-color, #0f172a)",
+                fontSize: "var(--form-heading-size, 1.875rem)",
+                fontWeight: "var(--form-heading-weight, 700)",
+                lineHeight: "var(--form-line-height, 1.5)",
+              }}
+            >
+              {form.title}
+            </h1>
+            {form.description && (
+              <p
+                style={{
+                  color: "var(--form-description-color, #475569)",
+                  lineHeight: "var(--form-line-height, 1.5)",
+                }}
+              >
+                {form.description}
+              </p>
+            )}
+          </header>
+
+          <div style={{ marginTop: "var(--form-gap-field, 1.25rem)" }}>
             <form onSubmit={handleSubmit} className="space-y-6">
               {form.fields
-                .filter((field) => field.type !== "submit") // Filter out submit fields
+                .filter((field) => field.type !== "submit")
                 .map((field, index) => (
-                  <div key={field.id || index} className="space-y-2">
+                  <div key={field.id || index} className="form-field space-y-2">
                     <FieldRenderer
                       field={field}
-                      formConfig={form.config as any}
+                      formConfig={form.config as FormConfig}
                       currentLanguage={language}
                       value={formData[field.id]}
                       onChange={(value) => handleFieldChange(field.id, value)}
@@ -333,20 +287,20 @@ export function FormViewer({ form, language, supportedLanguages }: FormViewerPro
                 ))}
 
               <div className="pt-6 border-t border-gray-200">
-                <Button
+                <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="form-button form-button-primary w-full"
+                  className="form-button form-button-primary w-full disabled:opacity-50"
                 >
                   {isSubmitting
                     ? getFormTranslation("formElements", "submitting", language)
                     : form.config.submitButton.text ||
                       getFormTranslation("formElements", "submitForm", language)}
-                </Button>
+                </button>
               </div>
             </form>
-          </CardContent>
-        </Card>
+          </div>
+        </section>
       </div>
     </div>
   );
