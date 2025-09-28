@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/auth/permissions'
 import { generateId } from '@/lib/utils/ulid'
 import { revalidatePath } from 'next/cache'
+import { FormStylingService } from '@/lib/form-styling/form-styling'
 
 export async function getForms() {
   try {
@@ -287,6 +288,16 @@ export async function saveForm(formData: {
         })
       })
 
+      // Save style tokens to database
+      const styleTokens: Record<string, string> = {
+        '--form-background': config.backgroundColor || '#ffffff',
+        '--form-card-background': config.backgroundColor || '#ffffff',
+        '--form-font-family': config.formFontFamily || 'Inter, system-ui, sans-serif',
+        '--form-button-primary-bg': config.submitButtonColor || '#2563eb'
+      }
+      
+      await FormStylingService.updateFormTokens(id, styleTokens)
+
       revalidatePath('/forms')
       return { success: true, message: 'Form published successfully', formId: id }
     } else {
@@ -362,6 +373,16 @@ export async function saveForm(formData: {
 
         return newForm
       })
+
+      // Save style tokens to database
+      const styleTokens: Record<string, string> = {
+        '--form-background': config.backgroundColor || '#ffffff',
+        '--form-card-background': config.backgroundColor || '#ffffff',
+        '--form-font-family': config.formFontFamily || 'Inter, system-ui, sans-serif',
+        '--form-button-primary-bg': config.submitButtonColor || '#2563eb'
+      }
+      
+      await FormStylingService.updateFormTokens(form.id, styleTokens)
 
       revalidatePath('/forms')
       return { success: true, message: 'Form published successfully', formId: form.id }

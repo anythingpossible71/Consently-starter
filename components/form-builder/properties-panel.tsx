@@ -524,22 +524,13 @@ export function PropertiesPanel({
               </TabsContent>
 
               <TabsContent value="styling" className="space-y-4">
-                <ThemeEditor
+                <ThemeEditor 
                   formConfig={formConfig}
                   onFormConfigChange={onFormConfigChange}
-                  onThemeApply={onThemeApply}
-                  formId={formId}
                 />
               </TabsContent>
             </Tabs>
 
-            {/* Save Button */}
-            <div className="mt-6 pt-4 border-t border-gray-200">
-              <Button onClick={onSaveChanges} className="w-full bg-blue-600 hover:bg-blue-700">
-                <Save className="w-4 h-4 mr-2" />
-                Save Changes
-              </Button>
-            </div>
           </div>
         </div>
       </div>
