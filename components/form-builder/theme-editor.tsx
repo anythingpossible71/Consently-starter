@@ -65,13 +65,13 @@ export function ThemeEditor({ formConfig, onFormConfigChange }: ThemeEditorProps
           <div className="flex items-center gap-2">
             <input
               type="color"
-              value={formConfig.backgroundColor}
+              value={formConfig.backgroundColor || "#ffffff"}
               onChange={(e) => handleBackgroundColorChange(e.target.value)}
               className="w-10 h-8 rounded border border-gray-300 cursor-pointer"
             />
             <input
               type="text"
-              value={formConfig.backgroundColor}
+              value={formConfig.backgroundColor || ""}
               onChange={(e) => handleBackgroundColorChange(e.target.value)}
               className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded"
               placeholder="#ffffff"
@@ -85,7 +85,7 @@ export function ThemeEditor({ formConfig, onFormConfigChange }: ThemeEditorProps
             <Type className="w-4 h-4 text-gray-600" />
             <Label className="text-sm font-medium text-gray-700">Font Family</Label>
           </div>
-          <Select value={formConfig.formFontFamily} onValueChange={handleFontFamilyChange}>
+          <Select value={formConfig.formFontFamily || "Inter, system-ui, sans-serif"} onValueChange={handleFontFamilyChange}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select font" />
             </SelectTrigger>
@@ -108,13 +108,13 @@ export function ThemeEditor({ formConfig, onFormConfigChange }: ThemeEditorProps
           <div className="flex items-center gap-2">
             <input
               type="color"
-              value={formConfig.submitButtonColor}
+              value={formConfig.submitButtonColor || "#2563eb"}
               onChange={(e) => handleButtonColorChange(e.target.value)}
               className="w-10 h-8 rounded border border-gray-300 cursor-pointer"
             />
             <input
               type="text"
-              value={formConfig.submitButtonColor}
+              value={formConfig.submitButtonColor || ""}
               onChange={(e) => handleButtonColorChange(e.target.value)}
               className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded"
               placeholder="#2563eb"

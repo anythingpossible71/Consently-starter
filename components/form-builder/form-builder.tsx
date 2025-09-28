@@ -118,7 +118,9 @@ export const FormBuilder = forwardRef<FormBuilderRef, FormBuilderProps>(({ onNav
         try {
           const result = await getForm(formId)
           if (result.success && result.form) {
-            setFormConfig(result.form.config)
+            // Merge database config with defaults to ensure all properties exist
+            const mergedConfig = { ...DEFAULT_FORM_CONFIG, ...result.form.config }
+            setFormConfig(mergedConfig)
             // Store all fields including submit
             setAllFields(result.form.fields)
             // Filter out submit fields when loading for editing (they're handled separately)
