@@ -10,7 +10,7 @@ import { FormResponses } from "@/components/form-builder/form-responses"
 import type { FormField, FieldType } from "@/types/form-builder/form-builder"
 import type { FormConfig } from "@/types/form-builder/form-config"
 import { DEFAULT_FORM_CONFIG } from "@/types/form-builder/form-config"
-import { THEME_PRESETS, generateThemeCSS } from "@/types/form-builder/theme-config"
+// Old theme system imports removed - using new dynamic CSS system
 import { DndProvider } from "react-dnd"
 import { HTML5Backend } from "react-dnd-html5-backend"
 import { getFormTranslation } from "@/utils/form-builder/translations"
@@ -42,7 +42,7 @@ export const FormBuilder = forwardRef<FormBuilderRef, FormBuilderProps>(({ onNav
   const [isSettingsActive, setIsSettingsActive] = useState(false)
   const [showLanguageDialog, setShowLanguageDialog] = useState(false)
   const [pendingLanguage, setPendingLanguage] = useState("")
-  const [appliedCSS, setAppliedCSS] = useState("")
+  // appliedCSS state removed - using new dynamic CSS system
   const [scrollPosition, setScrollPosition] = useState(0)
   const [isPublishing, setIsPublishing] = useState(false)
   const [allFields, setAllFields] = useState<FormField[]>([]) // All fields including submit
@@ -166,33 +166,10 @@ export const FormBuilder = forwardRef<FormBuilderRef, FormBuilderProps>(({ onNav
     setAllFields(fields)
   }, [fields, formId, allFields.length])
 
-  // Initialize theme CSS on mount - DISABLED for new dynamic CSS system
-  useEffect(() => {
-    // Old CSS system disabled - using new dynamic CSS system instead
-    // const theme = THEME_PRESETS[formConfig.selectedTheme] || THEME_PRESETS.default
-    // const css = generateThemeCSS(theme, formConfig.applyCustomCSS ? formConfig.customCSS : "")
-    // setAppliedCSS(css)
-    // applyThemeToDOM(css)
-  }, [])
+  // Theme CSS is now handled by the new dynamic CSS system
+  // No initialization needed here
 
-  const applyThemeToDOM = (css: string) => {
-    // Remove existing theme styles
-    const existingStyle = document.getElementById("form-theme-styles")
-    if (existingStyle) {
-      existingStyle.remove()
-    }
-
-    // Add new theme styles
-    const styleElement = document.createElement("style")
-    styleElement.id = "form-theme-styles"
-    styleElement.textContent = css
-    document.head.appendChild(styleElement)
-  }
-
-  const handleThemeApply = (css: string) => {
-    setAppliedCSS(css)
-    applyThemeToDOM(css)
-  }
+  // Old theme system functions removed - using new dynamic CSS system
 
   const getDefaultRequiredMessage = (fieldType: FieldType, label: string): string => {
     const fieldName = (label || "field").toLowerCase()
@@ -426,14 +403,8 @@ export const FormBuilder = forwardRef<FormBuilderRef, FormBuilderProps>(({ onNav
     })
     markAsChanged()
 
-    // Auto-apply theme changes - DISABLED for new dynamic CSS system
-    if (updates.selectedTheme || updates.customTheme || updates.customCSS || updates.applyCustomCSS !== undefined) {
-      // Old CSS system disabled - using new dynamic CSS system instead
-      // const newConfig = { ...formConfig, ...updates }
-      // const theme = newConfig.customTheme || THEME_PRESETS[newConfig.selectedTheme] || THEME_PRESETS.default
-      // const css = generateThemeCSS(theme, newConfig.applyCustomCSS ? newConfig.customCSS : "")
-      // handleThemeApply(css)
-    }
+    // Theme changes are now handled by the new dynamic CSS system
+    // No auto-apply needed here
   }
 
   const handleBackToHome = () => {
@@ -647,7 +618,7 @@ export const FormBuilder = forwardRef<FormBuilderRef, FormBuilderProps>(({ onNav
                 setSelectedField(null)
               }}
               fields={fields}
-              onThemeApply={handleThemeApply}
+              // onThemeApply removed - using new dynamic CSS system
               onSaveChanges={handleSaveChanges}
               formId={formId}
             />
