@@ -22,3 +22,4 @@ fi
 
 # Always allow the commit to proceed (backup is just a safety measure)
 exit 0
+

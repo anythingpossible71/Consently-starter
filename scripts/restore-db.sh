@@ -87,3 +87,4 @@ echo -e "${BLUE}📊 Current database stats:${NC}"
 echo -e "  📝 Forms: $(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM Form WHERE deleted_at IS NULL;" 2>/dev/null || echo "0")"
 echo -e "  📊 Responses: $(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM FormResponse WHERE deleted_at IS NULL;" 2>/dev/null || echo "0")"
 echo -e "  👥 Users: $(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM User WHERE deleted_at IS NULL;" 2>/dev/null || echo "0")"
+

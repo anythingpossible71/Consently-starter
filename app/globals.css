@@ -1,3 +1,5 @@
+@import "./forms/public/public-form.css" layer(forms);
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

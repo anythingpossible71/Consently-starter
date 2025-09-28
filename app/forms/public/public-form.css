@@ -1,0 +1,127 @@
+@layer forms {
+  [data-public-form-id] {
+    background: var(--form-background, #f8fafc);
+    color: var(--form-text-color, #0f172a);
+    font-family: var(--form-font-family, "Inter, system-ui, sans-serif");
+    line-height: var(--form-line-height, 1.5);
+  }
+
+  [data-public-form-id] .form-content-container {
+    max-width: var(--form-container-max-width, 640px);
+    margin: var(--form-container-margin, 20px auto);
+    padding: var(--form-card-padding, 2rem);
+    background: var(--form-card-background, #ffffff);
+    border-radius: var(--form-card-border-radius, 0.75rem);
+    box-shadow: var(--form-card-shadow, 0 4px 6px -1px rgba(15, 23, 42, 0.1),
+        0 2px 4px -1px rgba(15, 23, 42, 0.06));
+    border: var(--form-card-border, 1px solid transparent);
+    position: relative;
+  }
+
+  [data-public-form-id] .form-field {
+    margin-bottom: var(--form-gap-field, 1.25rem);
+  }
+
+  [data-public-form-id] .form-field label {
+    display: block;
+    font-size: var(--form-label-size, 0.95rem);
+    font-weight: var(--form-label-weight, 600);
+    color: var(--form-label-color, #0f172a);
+    margin-bottom: var(--form-label-margin-bottom, 0.75rem);
+    text-align: var(--form-text-align, left);
+  }
+
+  [data-public-form-id] .form-input {
+    width: 100%;
+    height: var(--form-input-height, 3rem);
+    padding: var(--form-input-padding, 0.75rem 1rem);
+    border: var(--form-input-border, 1px solid #cbd5f5);
+    border-radius: var(--form-input-radius, 0.65rem);
+    background: var(--form-input-background, #ffffff);
+    font-size: var(--form-font-size-base, 1rem);
+    color: var(--form-input-text-color, #0f172a);
+    transition: var(--form-button-transition, all 0.15s ease-in-out);
+    direction: var(--form-direction, ltr);
+    text-align: var(--form-text-align, left);
+  }
+
+  [data-public-form-id] .form-input:focus {
+    outline: none;
+    border: var(--form-input-focus-border, 1px solid #2563eb);
+    box-shadow: var(--form-input-focus-ring, 0 0 0 3px rgba(37, 99, 235, 0.15));
+  }
+
+  [data-public-form-id] .form-input.error,
+  [data-public-form-id] .form-input.border-red-500 {
+    border-color: var(--form-error-color, #ef4444);
+  }
+
+  [data-public-form-id] .form-button {
+    padding: var(--form-button-padding, 0.75rem 1.5rem);
+    border-radius: var(--form-button-radius, 9999px);
+    font-size: var(--form-font-size-base, 1rem);
+    font-weight: var(--form-label-weight, 600);
+    line-height: var(--form-line-height, 1.5);
+    transition: var(--form-button-transition, all 0.15s ease-in-out);
+    cursor: pointer;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  [data-public-form-id] .form-button-primary {
+    background: var(--form-button-primary-bg, #2563eb);
+    color: var(--form-button-primary-text, #ffffff);
+  }
+
+  [data-public-form-id] .form-button-primary:hover {
+    background: var(--form-button-primary-hover-bg, #1d4ed8);
+  }
+
+  [data-public-form-id] .form-button-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  [data-public-form-id] .form-description {
+    color: var(--form-description-color, #475569);
+  }
+
+  [data-public-form-id] .form-language-switcher {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  [data-public-form-id] .form-language-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 0.5rem;
+    border: 1px solid transparent;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    transition: all 0.15s ease-in-out;
+    background: var(--form-language-button-bg, #f1f5f9);
+    color: var(--form-language-button-text, #1f2937);
+  }
+
+  [data-public-form-id] .form-language-button.is-active {
+    border-color: var(--form-language-button-active-border, rgba(37, 99, 235, 0.4));
+    background: var(--form-language-button-active-bg, rgba(37, 99, 235, 0.15));
+    color: var(--form-language-button-active-text, #1d4ed8);
+  }
+
+  [data-public-form-id] .form-language-button:hover {
+    background: var(--form-language-button-hover-bg, rgba(15, 23, 42, 0.05));
+  }
+
+  [data-public-form-id] .form-footer {
+    margin-top: var(--form-footer-margin-top, 2rem);
+    padding-top: var(--form-footer-padding-top, 1.5rem);
+    border-top: var(--form-footer-border, 1px solid rgba(226, 232, 240, 1));
+  }
+}
+

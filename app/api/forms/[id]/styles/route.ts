@@ -4,14 +4,9 @@ import { FormStylingService } from "@/lib/form-styling/form-styling";
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const { id: formId } = await params;
-    const styles = await FormStylingService.getFormStyles(formId);
-    return NextResponse.json(styles);
+    const tokens = await FormStylingService.getTokenStyles(formId);
+    return NextResponse.json({ tokens });
   } catch (error) {
     console.error("Error fetching form styles:", error);
     return NextResponse.json({ error: "Failed to fetch form styles" }, { status: 500 });
@@ -20,21 +15,24 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id: formId } = await params;
     const session = await auth();
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id: formId } = await params;
-    const { tokens, variables } = await request.json();
+    const body = await request.json();
 
-    if (variables && typeof variables === "object") {
-      await FormStylingService.updateFormStyles(formId, variables);
+    const tokens = body.tokens as Record<string, string> | undefined;
+
+    if (!tokens || typeof tokens !== "object" || Object.keys(tokens).length === 0) {
+      return NextResponse.json(
+        { error: "Invalid payload: expected non-empty 'tokens' object" },
+        { status: 400 }
+      );
     }
 
-    if (tokens && typeof tokens === "object") {
-      await FormStylingService.updateFormTokens(formId, tokens);
-    }
+    await FormStylingService.updateFormTokens(formId, tokens);
 
     return NextResponse.json({ success: true });
   } catch (error) {

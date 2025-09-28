@@ -64,3 +64,4 @@ The scripts should detect:
 - [ ] Metadata JSON is valid
 - [ ] README instructions are clear
 - [ ] All scripts are executable
+

@@ -1,6 +1,7 @@
 import { getForm } from "@/app/actions/forms"
 import { notFound } from "next/navigation"
 import { FormViewer } from "@/components/form-builder/form-viewer"
+import { CSSGenerator } from "@/lib/form-styling/css-generator"
 
 interface PublicFormPageProps {
   params: Promise<{
@@ -49,8 +50,12 @@ export default async function PublicFormPage({ params, searchParams }: PublicFor
     )
   }
   
+  // Generate CSS variables for this form
+  const cssVariables = await CSSGenerator.generatePublicFormCSS(id)
+  
   return (
     <div className="min-h-screen bg-gray-50">
+      <style dangerouslySetInnerHTML={{ __html: cssVariables }} />
       <FormViewer 
         form={form} 
         language={language}

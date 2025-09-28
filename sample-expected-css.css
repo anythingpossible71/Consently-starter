@@ -1,0 +1,98 @@
+/* Sample CSS that should be injected into public forms */
+
+/* CSS Variables for Form 01K5B248H2RX8M2EZ6J34HKXV8 */
+#01K5B248H2RX8M2EZ6J34HKXV8 {
+  --form-button-primary-bg: #2563eb;
+  --form-button-primary-text: #ffffff;
+  --form-button-primary-hover-bg: #1d4ed8;
+  --form-background: #f8fafc;
+  --form-card-background: #ffffff;
+  --form-card-border-radius: 0.75rem;
+  --form-card-shadow: 0 10px 15px -3px rgb(15 23 42 / 0.08);
+  --form-card-padding: 2rem;
+  --form-input-border: 1px solid #cbd5f5;
+  --form-input-focus-border: 1px solid #2563eb;
+  --form-input-focus-ring: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  --form-label-color: #0f172a;
+  --form-text-color: #1f2937;
+  --form-font-family: Inter, system-ui, sans-serif;
+  --form-font-size-base: 1rem;
+  --form-line-height: 1.5;
+  --form-button-radius: 9999px;
+  --form-button-padding: 0.75rem 1.5rem;
+  --form-button-transition: all 0.15s ease-in-out;
+  --form-gap-field: 1.25rem;
+  --form-container-max-width: 640px;
+  --form-container-margin: 20px auto;
+}
+
+/* Form Container Styles */
+#01K5B248H2RX8M2EZ6J34HKXV8 {
+  background: var(--form-background, #f8fafc);
+}
+
+#01K5B248H2RX8M2EZ6J34HKXV8 .form-content-container {
+  max-width: var(--form-container-max-width, 640px);
+  margin: var(--form-container-margin, 20px auto);
+  padding: var(--form-card-padding, 2rem);
+  background: var(--form-card-background, #ffffff);
+  border-radius: var(--form-card-border-radius, 0.75rem);
+  box-shadow: var(--form-card-shadow, 0 10px 15px -3px rgb(15 23 42 / 0.08));
+  font-family: var(--form-font-family, Inter, system-ui, sans-serif);
+}
+
+/* Form Buttons */
+#01K5B248H2RX8M2EZ6J34HKXV8 .form-button {
+  padding: var(--form-button-padding, 0.75rem 1.5rem);
+  border-radius: var(--form-button-radius, 9999px);
+  font-size: var(--form-font-size-base, 1rem);
+  font-weight: 600;
+  line-height: var(--form-line-height, 1.5);
+  transition: var(--form-button-transition, all 0.15s ease-in-out);
+  cursor: pointer;
+  border: none;
+}
+
+#01K5B248H2RX8M2EZ6J34HKXV8 .form-button-primary {
+  background: var(--form-button-primary-bg, #2563eb);
+  color: var(--form-button-primary-text, #ffffff);
+}
+
+#01K5B248H2RX8M2EZ6J34HKXV8 .form-button-primary:hover {
+  background: var(--form-button-primary-hover-bg, #1d4ed8);
+}
+
+/* Form Input Fields */
+#01K5B248H2RX8M2EZ6J34HKXV8 .form-input {
+  width: 100%;
+  height: 3rem;
+  padding: 0.5rem 0.75rem;
+  border: var(--form-input-border, 1px solid #cbd5f5);
+  border-radius: 0.65rem;
+  background: #ffffff;
+  font-size: var(--form-font-size-base, 1rem);
+  color: #0f172a;
+  line-height: var(--form-line-height, 1.5);
+  transition: var(--form-button-transition, all 0.15s ease-in-out);
+}
+
+#01K5B248H2RX8M2EZ6J34HKXV8 .form-input:focus {
+  outline: none;
+  border: var(--form-input-focus-border, 1px solid #2563eb);
+  box-shadow: var(--form-input-focus-ring, 0 0 0 3px rgba(37, 99, 235, 0.15));
+}
+
+/* Form Labels */
+#01K5B248H2RX8M2EZ6J34HKXV8 .form-field label {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--form-label-color, #0f172a);
+  margin-bottom: var(--form-gap-field, 1.25rem);
+  line-height: var(--form-line-height, 1.5);
+}
+
+/* Form Field Container */
+#01K5B248H2RX8M2EZ6J34HKXV8 .form-field {
+  margin-bottom: var(--form-gap-field, 1.25rem);
+}
